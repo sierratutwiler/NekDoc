@@ -1,43 +1,48 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Quickstart &mdash; Nek5000 17.0 documentation</title>
   
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
+  
   
   
 
   
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'17.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="FAQ" href="faq.html" />
@@ -82,7 +87,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -111,7 +115,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -146,20 +149,18 @@
 
 
 
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>Quickstart</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-          
+            
             <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -181,78 +182,78 @@ The instructions provided in the quickstart guide and the tutorials use basic ba
 <h2>Directory structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h2>
 <p>Here’s a brief description of each top-level directory:</p>
 <div class="topic">
-<p class="topic-title">/core</p>
+<p class="topic-title first">/core</p>
 <p>contains the Nek5000 application sources.</p>
 </div>
 <div class="topic">
-<p class="topic-title">/bin</p>
+<p class="topic-title first">/bin</p>
 <p>contains scripts for running nek5000 and manipulating its output.</p>
 </div>
 <div class="topic">
-<p class="topic-title">/tools</p>
+<p class="topic-title first">/tools</p>
 <p>contains the sources for the pre- and post-processing tools which are stand-alone.</p>
 </div>
 <div class="topic">
-<p class="topic-title">/short-tests</p>
+<p class="topic-title first">/short-tests</p>
 <p>contains light-weight regression tests for verification.</p>
 </div>
 <div class="topic">
-<p class="topic-title">/run</p>
+<p class="topic-title first">/run</p>
 <p>consistent place for users to place their problem cases.</p>
 </div>
 <div class="topic">
-<p class="topic-title">/examples</p>
+<p class="topic-title first">/examples</p>
 <p>contains example problems. Note: NOT included in the master branch on the GitHub repo.</p>
 </div>
 <div class="topic">
-<p class="topic-title">/doc</p>
+<p class="topic-title first">/doc</p>
 <p>contains the user documentation. Note: NOT included in the master branch on the GitHub repo.</p>
 </div>
 <div class="topic">
-<p class="topic-title">/3rd_party</p>
+<p class="topic-title first">/3rd_party</p>
 <p>its purpose it to provide a consistent place for 3rd party code.</p>
 </div>
 </div>
 <div class="section" id="case-files">
 <h2>Case files<a class="headerlink" href="#case-files" title="Permalink to this headline">¶</a></h2>
 <div class="topic">
-<p class="topic-title">SIZE</p>
+<p class="topic-title first">SIZE</p>
 <p>contains some hardwired runtime parameters to dimension static arrays.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.par</p>
+<p class="topic-title first">foo.par</p>
 <p>contains runtime parameters.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.re2</p>
+<p class="topic-title first">foo.re2</p>
 <p>contains mesh and boundary data.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.ma2</p>
+<p class="topic-title first">foo.ma2</p>
 <p>contains partioning data.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.usr</p>
+<p class="topic-title first">foo.usr</p>
 <p>contains user specific code to initialize solver, set source terms and boundary conditions or to manipulate solver internals.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.his</p>
+<p class="topic-title first">foo.his</p>
 <p>contains probing points.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.f00000</p>
+<p class="topic-title first">foo.f00000</p>
 <p>contains checkpoint data.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.nek5000</p>
+<p class="topic-title first">foo.nek5000</p>
 <p>contains metadata for VisIt or ParaView.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.rea (legacy)</p>
+<p class="topic-title first">foo.rea (legacy)</p>
 <p>contains runtime parameters and mesh in ASCII. Replaced by .par and .re2 file.</p>
 </div>
 <div class="topic">
-<p class="topic-title">foo.map (legacy)</p>
+<p class="topic-title first">foo.map (legacy)</p>
 <p>contains partioning data in ASCII.</p>
 </div>
 <p>Note: The old legacy files (.rea &amp; .map) are recommended for debugging purposes only.</p>
@@ -316,29 +317,29 @@ There is also an built-in X-Window based postprocessor called <code class="docut
            
           </div>
           <footer>
+  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="faq.html" class="btn btn-neutral float-right" title="FAQ" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="index.html" class="btn btn-neutral float-left" title="Nek5000" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+      
+        <a href="faq.html" class="btn btn-neutral float-right" title="FAQ" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Nek5000" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
     </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2015-2017, UCHICAGO ARGONNE, LLC.
+        &copy; Copyright 2015-2017, UCHICAGO ARGONNE, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
+
         </div>
       </div>
 
@@ -346,6 +347,7 @@ There is also an built-in X-Window based postprocessor called <code class="docut
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {
