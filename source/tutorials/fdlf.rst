@@ -481,7 +481,6 @@ In ``userbc`` the heat flux is simply set equal to 1 and the equations for veloc
 
           qpp  = 1             !heat flux
           con  = cpfld(2,1)    !thermal conductivity
-          term = qpp*H/(2*con)
 
           ux   = 3./2.*(1-16*y**2)
           uy   = 0.0
