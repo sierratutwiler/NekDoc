@@ -414,26 +414,10 @@ The dimensions of the channel can now both be nondimensionalized using the hydra
    x_{max}^*=\frac{x_{max}}{D_H}=\frac{H/2}{2H}=\frac{1}{4}
    y_{max}^*=\frac{y_{max}}{D_H}=\frac{L}{2H}=\frac{0.2}{0.02}=10
 
-These are the new values used in genbox to generate the nondimensional domain in ``fdlf.box``.
-
-.. code-block:: none
-
-   -2                     spatial dimension (will create box.re2)
-   2                      number of fields
-   #
-   #    comments: periodic laminar flow
-   #
-   #========================================================
-   #
-   Box                                       fdlf
-   -50 -5                                    Nelx  Nely
-   0.0 0.25 1.0                              x0 x1 ratio
-   0.0 10 0.7                                y0 y1 ratio
-   v  ,O  ,SYM,W                             Velocity BC's:  (cbx0, cbx1, cby0, cby1)
-   t  ,O  ,I  ,f                             Temperature BC's:  (cbx0, cbx1, cby0, cby1)
+These changes to the fluid domain can be done in ``usrdat2`` in the ``fdlf.usr`` which modifeies the mesh domain.
 
  
-The next file that needs to be modified is the ``fdlf.par`` file.
+The first file that needs to be modified is the ``fdlf.par`` file.
 The user parameters can be removed from the par file as they won't be needed anymore to run the case nondimensionally and instead they will be adjusted for in the ``fdlf.usr`` file later.
 
 .. code-block:: ini
@@ -442,7 +426,7 @@ The user parameters can be removed from the par file as they won't be needed any
    # nek parameter file
    #
    [GENERAL]
-   dt = 1.0e-3
+   dt = 2.0e-3
    numsteps = 10000
    writeInterval = 2000
 
@@ -508,6 +492,28 @@ In ``userbc`` the heat flux is simply set equal to 1 and the equations for veloc
           return
           end
 
+The last change needed to be made is in ``usrdat2`` to nondimensionalize the domain.
+
+.. code-block:: fortran
+
+          subroutine usrdat2()  ! This routine to modify mesh coordinates
+
+   c      implicit none
+
+          include 'SIZE'
+          include 'TOTAL'
+  
+          Dh = 0.02 !m
+
+          n = lx1*ly1*lz1*nelv
+
+          call cmult(xm1,1/Dh,n)
+          call cmult(ym1,1/Dh,n)
+
+          return
+          end
+
+This edit multiplies all of the :math:`x` and :math:`y` coordinates in the domain by :math:`1/Dh`.   
 The rest of the files used for the case remain the same and the process of compiling the case is also unchanged.
 The results from running the cases nondimensionally compared to the dimensional case and analytical solution are shown below in :numref:`fig:velocity_lineplot_nondim` and :numref:`fig:temperature_lineplot_nondim`.
 
@@ -528,4 +534,22 @@ The results from running the cases nondimensionally compared to the dimensional 
 
    Nondimensional and dimensional Nek5000 temperature solutions plotted against analytical solutions.
 
+It's important to note that the nondimensional results need to be scaled for an accurate comparison to the dimensional results otherwise it will look like the data doesn't match as shown below in :numref:`fig:velocity_lineplot_nondim_wrong` and :numref:`fig:temperature_lineplot_nondim_wrong`.
+
+
+.. _fig:velocity_lineplot_nondim_wrong:
+
+.. figure:: fdlf/velocity_lineplot_nondim_wrong.png
+   :align: center
+   :figclass: align-center
+
+   Nondimensional and dimensional Nek5000 velocity solutions plotted against analytical solutions without scaling.
+
+.. _fig:temperature_lineplot_nondim_wrong:
+
+.. figure:: fdlf/temperature_lineplot_nondim_wrong.png
+   :align: center
+   :figclass: align-center
+
+   Nondimensional and dimensional Nek5000 temperature solutions plotted against analytical solutions without scaling.
 
