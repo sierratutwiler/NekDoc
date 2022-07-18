@@ -514,9 +514,37 @@ The last change needed to be made is in ``usrdat2`` to nondimensionalize the dom
 
 This edit multiplies all of the :math:`x` and :math:`y` coordinates in the domain by :math:`1/Dh`.   
 The rest of the files used for the case remain the same and the process of compiling the case is also unchanged.
-The results from running the cases nondimensionally compared to the dimensional case and analytical solution are shown below in :numref:`fig:velocity_lineplot_nondim` and :numref:`fig:temperature_lineplot_nondim`.
+The results from running the case can be seen below.
+It's important to note that the nondimensional results need to be scaled for an accurate comparison to the dimensional results. The two separate scales before adjusting the nondimensional results are shown below in :numref:`fig:velocity_lineplot_nondim_unscaled` and :numref:`fig:temperature_lineplot_nondim_unscaled`.
 
 
+.. _fig:velocity_lineplot_nondim_unscaled:
+
+.. figure:: fdlf/velocity_lineplot_nondim_unscaled.png
+   :align: center
+   :figclass: align-center
+
+   Nondimensional and dimensional Nek5000 velocity solutions plotted against analytical solutions without scaling.
+
+.. _fig:temperature_lineplot_nondim_unscaled:
+
+.. figure:: fdlf/temperature_lineplot_nondim_unscaled.png
+   :align: center
+   :figclass: align-center
+
+   Nondimensional and dimensional Nek5000 temperature solutions plotted against analytical solutions without scaling.
+
+The nondimensional results can be scaled to match the dimensional results by redimensionalizing the sults using the relationship between the dimensional and nondimensional variables defined above:
+
+.. math::
+   x^*=\frac{x}{D_H}=\frac{x}{2H} \xrightarrow x=x^* * 2H=0.2x
+   y^*=\frac{y}{D_H}=\frac{y}{2H} \xrightarrow y=y^* * 2H=0.2y
+   \vec{u}^* = \vec{u}/u_m \xrightarrow \vec{u} = \vec{u}^* * u_m =0.5 \vec{u}
+   T^* = \frac{T-T_{in}}{\Delta T_{ref}} \xrightarrow T = T^* * \Delta T_{ref} + T_{in}
+ 
+The scaled nondimensional results can be seen below in :numref:`fig:velocity_lineplot_nondim` and :numref:`fig:temperature_lineplot_nondim`.
+
+ 
 .. _fig:velocity_lineplot_nondim:
 
 .. figure:: fdlf/velocity_lineplot_nondim.png
@@ -533,22 +561,4 @@ The results from running the cases nondimensionally compared to the dimensional 
 
    Nondimensional and dimensional Nek5000 temperature solutions plotted against analytical solutions.
 
-It's important to note that the nondimensional results need to be scaled for an accurate comparison to the dimensional results otherwise it will look like the data doesn't match as shown below in :numref:`fig:velocity_lineplot_nondim_wrong` and :numref:`fig:temperature_lineplot_nondim_wrong`.
-
-
-.. _fig:velocity_lineplot_nondim_wrong:
-
-.. figure:: fdlf/velocity_lineplot_nondim_wrong.png
-   :align: center
-   :figclass: align-center
-
-   Nondimensional and dimensional Nek5000 velocity solutions plotted against analytical solutions without scaling.
-
-.. _fig:temperature_lineplot_nondim_wrong:
-
-.. figure:: fdlf/temperature_lineplot_nondim_wrong.png
-   :align: center
-   :figclass: align-center
-
-   Nondimensional and dimensional Nek5000 temperature solutions plotted against analytical solutions without scaling.
 
