@@ -82,17 +82,12 @@ c      implicit none
 
       integer ix,iy,iz,iside,eg
 
-      H    = uparam(1)     !channel height
-      um   = uparam(2)     !mean velocity
-      qpp  = 1             !heat flux
-      Tin  = uparam(4)     !mean inlet temperature
       con  = cpfld(2,1)    !thermal conductivity
-      term = qpp*H/(2*con)
 
       ux   = 3./2.*(1-16*y**2)
       uy   = 0.0
       uz   = 0.0
-      temp = (1/(4*cpfld(2,1)))*(12.*y**2-32.*y**4-39./280.)
+      temp = (1/(4*con))*(12.*y**2-32.*y**4-39./280.)
       flux = 1
 
       return
