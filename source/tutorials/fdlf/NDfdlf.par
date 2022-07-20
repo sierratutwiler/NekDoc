@@ -2,7 +2,7 @@
 # nek parameter file
 #
 [GENERAL]
-dt = 2.0e-3
+dt = 2.5e-3
 numsteps = 10000
 writeInterval = 2000
 

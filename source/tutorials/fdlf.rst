@@ -358,7 +358,12 @@ These changes to the fluid domain can be done in ``usrdat2`` in the ``fdlf.usr``
  
 The first file that needs to be modified is the ``fdlf.par`` file.
 The user parameters can be removed from the par file as they won't be needed anymore to run the case nondimensionally and instead they will be adjusted for in the ``fdlf.usr`` file later.
-Before editing the ``fdlf.par`` file the Reynold's number and Peclet number need to be calculated in order to define the case nondimensionally.
+The time step ``dt`` can be nondimensionalized as follows:
+
+.. math::
+   dt^* = \frac{dt*u_m}{D_h} = \frac{(0.0001 \ s)(0.5 \ m/s)}{0.02 \ m} = 2.5*10^{-3}
+
+Before editing the ``fdlf.par`` file further the Reynold's number and Peclet number need to be calculated in order to define the case nondimensionally.
 The Reynold's number is calculated as shown :ref:`here _https://nek5000.github.io/NekDoc/theory.html#non-dimensional-navier-stokes` and for this case can be calculated as follows:
 
 .. math::
