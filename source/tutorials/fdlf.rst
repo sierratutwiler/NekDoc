@@ -399,7 +399,7 @@ The last change needed to be made is in ``usrdat2`` to nondimensionalize the dom
 
 .. literalinclude:: fdlf/NDfdlf.usr
    :language: fortran
-   :lines: 155-170
+   :lines: 142-157
 
 This edit multiplies all of the :math:`x` and :math:`y` coordinates in the domain by :math:`1/Dh`.   
 The rest of the files used for the case remain the same and the process of compiling the case is also unchanged.
