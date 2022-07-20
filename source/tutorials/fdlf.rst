@@ -322,6 +322,7 @@ Plots of the velocity and temperature varying along the y-axis as evaluated by N
 .. figure:: fdlf/velocity_lineplot.png
    :align: center
    :figclass: align-center
+   :scale: 50 %
 
    Nek5000 velocity solutions plotted against analytical solutions.
 
@@ -330,6 +331,7 @@ Plots of the velocity and temperature varying along the y-axis as evaluated by N
 .. figure:: fdlf/temperature_lineplot.png
    :align: center
    :figclass: align-center
+   :scale: 50 % 
 
    Nek5000 temperature solutions plotted against analytical solutions.
 
@@ -367,11 +369,11 @@ The Peclet number is calculated as shown :ref:`here _https://nek5000.github.io/N
 .. math::
    Pe = \frac{\rho u_m D_h c_p}{k} = {(1.2 \ kg/m^3)(0.5 \ m/s)(0.02 \ m)(1000 \ J/kg-K)}{0.025 \ W/m-K} = 480  
 
-.. literalinclude:: fdlf/NDfdlf.par
-   :language: ini
-
 Both ``rho`` and ``rhoCp`` become 1 and ``viscosity`` is set to -600 to define the Reynolds number while ``conductivity`` is set to -480 to define the Peclet number.
 The time step size was also increased because the case took longer to develop and the CFL was low enough to support the increase in step size.
+
+.. literalinclude:: fdlf/NDfdlf.par
+   :language: ini
 
 The last file that needs to be modified to nondimensionalize the case is the ``fdlf.usr``  file.
 The inlet conditions are nondimensionalized as shown and the resulting values are defined in ``useric``.
@@ -411,6 +413,7 @@ It's important to note that the nondimensional results need to be scaled for an 
 .. figure:: fdlf/velocity_lineplot_nondim_unscaled.png
    :align: center
    :figclass: align-center
+   :scale: 50 %
 
    Nondimensional and dimensional Nek5000 velocity solutions plotted against analytical solutions without scaling.
 
@@ -419,6 +422,7 @@ It's important to note that the nondimensional results need to be scaled for an 
 .. figure:: fdlf/temperature_lineplot_nondim_unscaled.png
    :align: center
    :figclass: align-center
+   :scale: 50 %
 
    Nondimensional and dimensional Nek5000 temperature solutions plotted against analytical solutions without scaling.
 
@@ -438,6 +442,7 @@ The scaled nondimensional results can be seen below in :numref:`fig:velocity_lin
 .. figure:: fdlf/velocity_lineplot_nondim.png
    :align: center
    :figclass: align-center
+   :scale: 50 %
 
    Nondimensional and dimensional Nek5000 velocity solutions plotted against analytical solutions.
 
@@ -446,6 +451,7 @@ The scaled nondimensional results can be seen below in :numref:`fig:velocity_lin
 .. figure:: fdlf/temperature_lineplot_nondim.png
    :align: center
    :figclass: align-center
+   :scale: 50 %
 
    Nondimensional and dimensional Nek5000 temperature solutions plotted against analytical solutions.
 
