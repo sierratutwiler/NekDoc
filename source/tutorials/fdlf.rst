@@ -127,6 +127,7 @@ The control parameters for any case are given in the ``.par`` file. For this cas
    :language: ini
 
 .. code-block:: ini
+
   #
   # nek parameter file
   #
@@ -178,6 +179,7 @@ The next step is to specify the intial conditions. This can be done in the subro
    :emphasis-lines: 112-117,119,122,123
 
 .. code-block:: fortran
+
        subroutine useric(ix,iy,iz,eg) ! set up initial conditions
 
  c     implicit none
@@ -213,6 +215,7 @@ The inlet temperature and mean velocity are called from the list of user defined
    :emphasis-lines: 91,92,94,97
 
 .. code-block:: fortran
+
        subroutine userbc(ix,iy,iz,iside,eg) ! set up boundary conditions
  c
  c     NOTE ::: This subroutine MAY NOT be called by every process
@@ -468,6 +471,7 @@ The time step size was also increased because the case took longer to develop an
    :language: ini
 
 .. code-block:: ini
+
    #
    # nek parameter file
    #
@@ -555,6 +559,7 @@ The last change needed to be made is in ``usrdat2`` to nondimensionalize the dom
    :lines: 142-157
 
 .. code-block:: fortran
+
         subroutine usrdat2()  ! This routine to modify mesh coordinates
 
  c      implicit none
