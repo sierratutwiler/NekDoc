@@ -123,8 +123,26 @@ Control parameters
 
 The control parameters for any case are given in the ``.par`` file. For this case, create a new file called ``fdlf.par`` with the following:
 
-.. literalinclude:: fdlf/fdlf.par
+.. .. literalinclude:: fdlf/fdlf.par
    :language: ini
+
+.. code-block:: ini
+  #
+  # nek parameter file
+  #
+  [GENERAL]
+  dt = 2.5e-3
+  numsteps = 10000
+  writeInterval = 2000
+ 
+  [VELOCITY]
+  density = 1        #kg/m3
+  viscosity = -600  #kg/m-s
+
+  [TEMPERATURE]
+  rhoCp = 1       #J/m3-K
+  conductivity = -480 #W/m-K
+
 
 For this case the properties evaluated are for air at ~20 C. 
 Note that ``rhoCp`` is the product of density and specific heat.
@@ -154,17 +172,72 @@ Initial & boundary conditions
 
 The next step is to specify the intial conditions. This can be done in the subroutine ``useric`` as follows:
 
-.. literalinclude:: fdlf/fdlf.usr
+.. .. literalinclude:: fdlf/fdlf.usr
    :language: fortran
    :line: 102-126
    :emphasis-lines: 112-117,119,122,123
 
+.. code-block:: fortran
+       subroutine useric(ix,iy,iz,eg) ! set up initial conditions
+
+ c     implicit none
+
+       integer ix,iy,iz,eg
+
+       include 'SIZE'
+       include 'TOTAL'
+       include 'NEKUSE'
+
+       H    = uparam(1)     !channel height
+       um   = uparam(2)     !mean velocity
+       qpp  = uparam(3)     !heat flux
+       Tin  = uparam(4)     !mean inlet temperature
+       con  = cpfld(2,1)    !thermal conductivity
+       term = qpp*H/(2*con)
+
+       ux   = um*3./2.*(1-4.*(y/H)**2)
+       uy   = 0.0
+       uz   = 0.0
+       temp = term*(3.*(y/H)**2-2.*(y/H)**4-39./280.)+Tin
+       flux = qpp
+
+       return
+       end
+
+
 The inlet temperature and mean velocity are called from the list of user defined parameters in the ``.par`` file. The boundary conditions can be setup in subroutine ``userbc`` as follows:
 
-.. literalinclude:: fdlf/fdlf.usr
+.. .. literalinclude:: fdlf/fdlf.usr
    :language: fortran
    :lines: 77-100
    :emphasis-lines: 91,92,94,97
+
+.. code-block:: fortran
+       subroutine userbc(ix,iy,iz,iside,eg) ! set up boundary conditions
+ c
+ c     NOTE ::: This subroutine MAY NOT be called by every process
+ c
+ c     implicit none
+
+       integer ix,iy,iz,iside,eg
+
+       include 'SIZE'
+       include 'TOTAL'
+       include 'NEKUSE'
+
+ c     if (cbc(iside,gllel(eg),ifield).eq.'v01')
+
+       um = uparam(2)
+       Tin = uparam(4)
+
+       ux   = um
+       uy   = 0.0
+       uz   = 0.0
+       temp = Tin
+
+       return
+       end
+
 
 The channel height, mean velocity, heat flux, and mean inlet temperature are all called from the list of user defined parameters in the ``.par`` file as well.
 
@@ -234,9 +307,23 @@ It is recommended to copy a template of the ``SIZE`` file from the core director
 
 Then, adjust the following parameters in the BASIC section
 
-.. literalinclude:: fdlf/SIZE
+.. .. literalinclude:: fdlf/SIZE
    :language: fortran
    :lines: 10-21
+
+.. code-block:: fortran
+
+       ! BASIC
+       parameter (ldim=2)               ! domain dimension (2 or 3)
+       parameter (lx1=8)                ! GLL points per element along each direction
+       parameter (lxd=12)               ! GL  points for over-integration (dealiasing)
+       parameter (lx2=lx1-0)            ! GLL points for pressure (lx1 or lx1-2)
+
+       parameter (lelg=250)             ! max number of global elements
+       parameter (lpmin=1)              ! min number of MPI ranks
+       parameter (lelt=lelg/lpmin + 3)  ! max number of local elements per MPI rank
+       parameter (ldimt=1)              ! max auxiliary fields (temperature + scalars)
+
 
 For this tutorial we have set our polynomial order to be :math:`N=7` which is defined in the ``SIZE`` file as ``lx1=8`` which indicates that there are 8 points in each spatial dimension of every element. The number of dimensions is specified using ``ldim`` and the number of global elements used is specified using ``lelg``. 
 
@@ -377,8 +464,26 @@ The Peclet number is calculated as shown :ref:`here _https://nek5000.github.io/N
 Both ``rho`` and ``rhoCp`` become 1 and ``viscosity`` is set to -600 to define the Reynolds number while ``conductivity`` is set to -480 to define the Peclet number.
 The time step size was also increased because the case took longer to develop and the CFL was low enough to support the increase in step size.
 
-.. literalinclude:: fdlf/NDfdlf.par
+.. .. literalinclude:: fdlf/NDfdlf.par
    :language: ini
+
+.. code-block:: ini
+   #
+   # nek parameter file
+   #
+   [GENERAL]
+   dt = 2.5e-3
+   numsteps = 10000
+   writeInterval = 2000
+
+   [VELOCITY]
+   density = 1        #kg/m3
+   viscosity = -600  #kg/m-s
+
+   [TEMPERATURE]
+   rhoCp = 1       #J/m3-K
+   conductivity = -480 #W/m-K
+
 
 The last file that needs to be modified to nondimensionalize the case is the ``fdlf.usr``  file.
 The inlet conditions are nondimensionalized as shown and the resulting values are defined in ``useric``.
@@ -387,24 +492,86 @@ The inlet conditions are nondimensionalized as shown and the resulting values ar
    u_m^* = u_m/u_m = 1
    T_{in}^* = \frac{T_{in}-T_{in}}{\Delta T_{ref}} = 0
 
-.. literalinclude:: fdlf/NDfdlf.usr
+.. .. literalinclude:: fdlf/NDfdlf.usr
    :language: fortran
    :lines: 96-112
    :emphasis-lines: 106
 
+.. code-block:: fortran
+   
+        subroutine useric(ix,iy,iz,ieg) ! set up initial conditions
+
+ c      implicit none
+
+        integer ix,iy,iz,ieg
+
+        include 'SIZE'
+        include 'TOTAL'
+        include 'NEKUSE'
+
+        ux   = 1
+        uy   = 0.0
+        uz   = 0.0
+        temp = 0.0
+
+        return
+        end
+
+
 In ``userbc`` the heat flux is simply set equal to 1 and the equations for velocity and temperature are replaced with their respective nondimensional forms. 
 
-.. literalinclude:: fdlf/NDfdlf.usr
+.. .. literalinclude:: fdlf/NDfdlf.usr
    :language: fortran
    :lines: 77-94
    :emphasis-lines: 87,90,91
 
+.. code-block:: fortran
+
+        subroutine userbc(ix,iy,iz,iside,eg) ! set up boundary conditions
+ c      implicit none
+        include 'SIZE'
+        include 'TOTAL'
+        include 'NEKUSE'
+ 
+        integer ix,iy,iz,iside,eg
+ 
+        con  = cpfld(2,1)    !thermal conductivity
+ 
+        ux   = 3./2.*(1-16*y**2)
+        uy   = 0.0
+        uz   = 0.0
+ 
+        temp = (1/(4*con))*(12.*y**2-32.*y**4-39./280.)
+        flux = 1
+ 
+        return
+        end
+
 
 The last change needed to be made is in ``usrdat2`` to nondimensionalize the domain.
 
-.. literalinclude:: fdlf/NDfdlf.usr
+.. .. literalinclude:: fdlf/NDfdlf.usr
    :language: fortran
    :lines: 142-157
+
+.. code-block:: fortran
+        subroutine usrdat2()  ! This routine to modify mesh coordinates
+
+ c      implicit none
+
+        include 'SIZE'
+        include 'TOTAL'
+
+        Dh = 0.02 !m
+
+        n = lx1*ly1*lz1*nelv
+
+        call cmult(xm1,1/Dh,n)
+        call cmult(ym1,1/Dh,n)
+
+        return
+        end
+
 
 This edit multiplies all of the :math:`x` and :math:`y` coordinates in the domain by :math:`1/Dh`.   
 The rest of the files used for the case remain the same and the process of compiling the case is also unchanged.
