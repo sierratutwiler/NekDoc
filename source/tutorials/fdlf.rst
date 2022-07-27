@@ -128,22 +128,26 @@ The control parameters for any case are given in the ``.par`` file. For this cas
 
 .. code-block:: ini
 
-  #
-  # nek parameter file
-  #
-  [GENERAL]
-  dt = 2.5e-3
-  numsteps = 10000
-  writeInterval = 2000
- 
-  [VELOCITY]
-  density = 1        #kg/m3
-  viscosity = -600  #kg/m-s
+   #
+   # nek parameter file
+   #
+   [GENERAL]
+   dt = 1.0e-4
+   numsteps = 10000
+   writeInterval = 2000
 
-  [TEMPERATURE]
-  rhoCp = 1       #J/m3-K
-  conductivity = -480 #W/m-K
+   userParam01 = 0.01   #channel height [m]
+   userParam02 = 0.5    #mean velocity [m/s]
+   userParam03 = 300.0  #heat flux [W/m^2]
+   userParam04 = 10     #inlet temperature [C]
 
+   [VELOCITY]
+   density = 1.2        #kg/m3
+   viscosity = 0.00002  #kg/m-s
+
+   [TEMPERATURE]
+   rhoCp = 1200.0       #J/m3-K
+   conductivity = 0.025 #W/m-K
 
 For this case the properties evaluated are for air at ~20 C. 
 Note that ``rhoCp`` is the product of density and specific heat.
@@ -190,18 +194,13 @@ The next step is to specify the intial conditions. This can be done in the subro
        include 'TOTAL'
        include 'NEKUSE'
 
-       H    = uparam(1)     !channel height
        um   = uparam(2)     !mean velocity
-       qpp  = uparam(3)     !heat flux
        Tin  = uparam(4)     !mean inlet temperature
-       con  = cpfld(2,1)    !thermal conductivity
-       term = qpp*H/(2*con)
 
-       ux   = um*3./2.*(1-4.*(y/H)**2)
+       ux   = um
        uy   = 0.0
        uz   = 0.0
-       temp = term*(3.*(y/H)**2-2.*(y/H)**4-39./280.)+Tin
-       flux = qpp
+       temp = Tin
 
        return
        end
@@ -228,15 +227,18 @@ The inlet temperature and mean velocity are called from the list of user defined
        include 'TOTAL'
        include 'NEKUSE'
 
- c     if (cbc(iside,gllel(eg),ifield).eq.'v01')
+       H    = uparam(1)     !channel height
+       um   = uparam(2)     !mean velocity
+       qpp  = uparam(3)     !heat flux
+       Tin  = uparam(4)     !mean inlet temperature
+       con  = cpfld(2,1)    !thermal conductivity
+       term = qpp*H/(2*con)
 
-       um = uparam(2)
-       Tin = uparam(4)
-
-       ux   = um
+       ux   = um*3./2.*(1-4.*(y/H)**2)
        uy   = 0.0
        uz   = 0.0
-       temp = Tin
+       temp = term*(3.*(y/H)**2-2.*(y/H)**4-39./280.)+Tin
+       flux = qpp
 
        return
        end

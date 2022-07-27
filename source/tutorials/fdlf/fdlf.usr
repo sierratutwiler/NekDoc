@@ -88,13 +88,18 @@ c      implicit none
 
 c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
 
-      um = uparam(2)
-      Tin = uparam(4)
+      H    = uparam(1)     !channel height
+      um   = uparam(2)     !mean velocity
+      qpp  = uparam(3)     !heat flux
+      Tin  = uparam(4)     !mean inlet temperature
+      con  = cpfld(2,1)    !thermal conductivity
+      term = qpp*H/(2*con)
 
-      ux   = um
+      ux   = um*3./2.*(1-4.*(y/H)**2)
       uy   = 0.0
       uz   = 0.0
-      temp = Tin
+      temp = term*(3.*(y/H)**2-2.*(y/H)**4-39./280.)+Tin
+      flux = qpp
 
       return
       end
@@ -109,18 +114,13 @@ c      implicit none
       include 'TOTAL'
       include 'NEKUSE'
 
-      H    = uparam(1)     !channel height
-      um   = uparam(2)     !mean velocity
-      qpp  = uparam(3)     !heat flux
-      Tin  = uparam(4)     !mean inlet temperature
-      con  = cpfld(2,1)    !thermal conductivity
-      term = qpp*H/(2*con)
+      um = uparam(2)
+      Tin = uparam(4)
 
-      ux   = um*3./2.*(1-4.*(y/H)**2)
+      ux   = um
       uy   = 0.0
       uz   = 0.0
-      temp = term*(3.*(y/H)**2-2.*(y/H)**4-39./280.)+Tin
-      flux = qpp
+      temp = Tin
 
       return
       end
