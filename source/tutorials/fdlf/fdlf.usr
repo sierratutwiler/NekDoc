@@ -15,16 +15,13 @@ c     - usrdat3 : general purpose routine for initialization
 c     
 c-----------------------------------------------------------------------
       subroutine uservp(ix,iy,iz,eg) ! set variable properties
-
-c      implicit none
-
-      integer ix,iy,iz,eg
-     
+      implicit none
       include 'SIZE'
       include 'TOTAL'
       include 'NEKUSE'
 
-      integer e
+      integer ix,iy,iz,eg,e
+
 c     e = gllel(eg)
 
       udiff  = 0.0
@@ -38,15 +35,13 @@ c
 c     Note: this is an acceleration term, NOT a force!
 c     Thus, ffx will subsequently be multiplied by rho(x,t).
 c
-c      implicit none
-
-      integer ix,iy,iz,eg
-
+      implicit none
       include 'SIZE'
       include 'TOTAL'
       include 'NEKUSE'
 
-      integer e
+      integer ix,iy,iz,eg,e
+
 c     e = gllel(eg)
 
       ffx = 0.0
@@ -57,16 +52,13 @@ c     e = gllel(eg)
       end
 c-----------------------------------------------------------------------
       subroutine userq(ix,iy,iz,eg) ! set source term
-
-c      implicit none
-
-      integer ix,iy,iz,eg
-
+      implicit none
       include 'SIZE'
       include 'TOTAL'
       include 'NEKUSE'
 
-      integer e
+      integer ix,iy,iz,eg,e
+
 c     e = gllel(eg)
 
       qvol   = 0.0
@@ -78,13 +70,13 @@ c-----------------------------------------------------------------------
 c
 c     NOTE ::: This subroutine MAY NOT be called by every process
 c
-c      implicit none
-
-      integer ix,iy,iz,iside,eg
-
+      implicit none
       include 'SIZE'
       include 'TOTAL'
       include 'NEKUSE'
+
+      integer ix,iy,iz,iside,eg
+      real H,um,qpp,Tin,con,term
 
 c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
 
@@ -94,7 +86,7 @@ c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
       Tin  = uparam(4)     !mean inlet temperature
       con  = cpfld(2,1)    !thermal conductivity
       term = qpp*H/(2*con)
-
+      
       ux   = um*3./2.*(1-4.*(y/H)**2)
       uy   = 0.0
       uz   = 0.0
@@ -104,31 +96,28 @@ c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
       return
       end
 c-----------------------------------------------------------------------
-      subroutine useric(ix,iy,iz,eg) ! set up initial conditions
-
-c      implicit none
-
-      integer ix,iy,iz,eg
-
+      subroutine useric(ix,iy,iz,ieg)
+      implicit none
       include 'SIZE'
       include 'TOTAL'
       include 'NEKUSE'
-
+      
+      integer ix,iy,iz,ieg
+      real um,Tin
+      
       um = uparam(2)
       Tin = uparam(4)
-
+      
       ux   = um
       uy   = 0.0
       uz   = 0.0
       temp = Tin
-
+      
       return
       end
 c-----------------------------------------------------------------------
       subroutine userchk()
-
-c      implicit none
-
+      implicit none
       include 'SIZE'
       include 'TOTAL'
 
@@ -136,6 +125,7 @@ c      implicit none
       end
 c-----------------------------------------------------------------------
       subroutine userqtl ! Set thermal divergence
+      implicit none
 
       call userqtl_scig 
 
@@ -143,9 +133,7 @@ c-----------------------------------------------------------------------
       end
 c-----------------------------------------------------------------------
       subroutine usrdat()   ! This routine to modify element vertices
-
-c      implicit none
-
+      implicit none
       include 'SIZE'
       include 'TOTAL'
 
@@ -153,9 +141,7 @@ c      implicit none
       end
 c-----------------------------------------------------------------------
       subroutine usrdat2()  ! This routine to modify mesh coordinates
-
-c      implicit none
-
+      implicit none
       include 'SIZE'
       include 'TOTAL'
 
@@ -163,9 +149,7 @@ c      implicit none
       end
 c-----------------------------------------------------------------------
       subroutine usrdat3()
-
-c      implicit none
-
+      implicit none
       include 'SIZE'
       include 'TOTAL'
 

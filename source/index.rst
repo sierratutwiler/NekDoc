@@ -6,9 +6,11 @@ Nek5000
 
    quickstart
    faq
-   tutorials
    problem_setup
+   tools
+   tutorials
    theory
+   build
    appendix
    references
 

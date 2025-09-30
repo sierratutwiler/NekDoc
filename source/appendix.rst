@@ -2,72 +2,14 @@
 Appendices
 ==========
 
------------------
-Build Options
------------------
-
-The shell script ``makenek`` is designed to assist the compilation process of Nek5000. The script will create a ``makefile`` based on the user settings section in ``makenek``. The GNU gmake utility is used to build Nek5000.
-Available configurations options:
-
-.. _tab:bdms:
-
-.. csv-table:: Compiler options
-   :header: name,values,default,description
-   :widths: 12,7,12,20
-
-   PPLIST, string, , "list of pre-processor symbols (CVODE, ...)"                                     
-   MPI, "1, 0", 1, use MPI (needed for a multiprocessor computation)                                           
-
-   FC, string, optional, Fortran compiler (mpif77)                                                         
-   CC, string, optional, C compiler (mpicc)                                                               
-   FCLAGS, string, optional, optional Fortan compilation flags        
-   CCLAGS, string, optional, optional C compilation flags                                                                  
-   SOURCE_ROOT, string, optional, path of Nek5000 source                                                                      
-   USR, string, optional, object list of additional files to compile make intructions (``makefile_usr.inc`` required) 
-   USR_LFLAGS, string, optional, optional linking flags                                                                      
-   PROFILING, "1, 0", 1, enable internal timers for performance statistics                                       
-   VISIT, "1, 0", 0, Toggles Visit in situ. See Visit_in_situ for details                                        
-   VISIT_INSTALL, string, VISIT in situ, Path to VISIT install path. See Visit_in_situ for details.                                 
-   VISIT_STOP, "true, false", false, "When running VISIT in situ, simulation stops after step 1 to connect VISIT."                 
-
-
-The ``PPLIST`` field can be used to activate several features at compilation time. 
-A list of possible options is below:
-
-.. _tab:PPLIST:
-
-.. csv-table:: PPLIST options
-   :header: Symbol, Description
-
-   NOMPIIO, deactivate MPI-IO support
-   BGQ, use Blue Gene Q optimized mxm
-   XSMM, use libxsmm for mxm
-   CVODE, compile with CVODE support for scalars
-   VENDOR_BLAS, use VENDOR BLAS/LAPACK
-   EXTBAR, add underscore to exit call (for BGQ)
-   NEKNEK, activate overlapping mesh solver (experimental)
-   CMTNEK, activate discontinuous Galerkin compressible-flow solver (experimental)
-
-In addition to these preprocessor items, the user can add compilation and linking flags. 
-``FFLAGS`` allows the user to add Fortran compilation flags while ``CCFAGS`` allows the user to 
-add C compilation flags. 
-These will be compiler dependent and the user is encouraged to consult the manual of the compiler if specific options are needed/desired. 
-A commonly used flag is ``-mcmodel`` which allows for arrays of size larger than 2GB. 
-This option  tells the compiler to use a specific memory model to generate code and store data. 
-It can affect code size and performance. 
-If your program has global and static data with a total size smaller than 2GB, ``-mcmodel=small`` is sufficient. 
-Global and static data larger than 2GB requires ``-mcmodel=medium`` or ``-mcmodel=large``.
-
-.. Another useful flag is related to implicit typesetting. 
-.. Nek5000 relies often on implicit typesetting as default in the example cases. 
-.. This means in practice that if the user defines a new variable in the user file and forgets to define its type explicitly then variable beginning with a character from I to N, its type is ``INTEGER``. 
-.. Otherwise, it is ``REAL``.  
-.. To avoid confusion the user not accustomed to implicit typesetting may use the warning flag ``-Wimplicit``. 
-.. This flag warns whenever a variable, array, or function is implicitly declared and has an effect similar to using the ``IMPLICIT NONE`` statement in every program unit.
-
 ----------------------------------
 Internal Input Parameters/Switches
 ----------------------------------
+
+The parameter list is handled internally and is populated based on options prescribed in the ``.par`` file.
+In general, it is not recommend for users to override these parameters as their usage may be subject to change.
+However they can be set or referenced in the ``.usr`` file via the ``param()`` array.
+This list was explicitly set with the legacy ``.rea`` format.
 
 ....................
 Parameters
@@ -195,6 +137,9 @@ Parameters
 Logical switches
 ................
 
+Like the parameter list, the logical switches are handled internally based on options set in the ``.par`` file and it is not recommended for the user to override these settings.
+
+
 **IFFLOW** solve for fluid (velocity, pressure)
 
 **IFHEAT** solve for heat (temperature and/or scalars)
@@ -221,129 +166,93 @@ Logical switches
 
 **IFUSERVP** user-defined properties
 
-.....................
-Other Input Variables
-.....................
+**IFXYO** include coordinates in output files
 
-**filterType** 0: explicit, 1: HPT-RT
+**IFPO** include pressure field in output files
 
-**restol(:)** field solver tolerance 
+**IFVO** include velocity fields in output files
+
+**IFTO** include temperature field in output files
+
+**IFPSCO** include passive scalar fields in output files, ``ifpsco(ldimt1)``
+
+.. _sec:commonvars:
 
 ------------------------------
-Commonly used Variables
+Commonly Used Variables
 ------------------------------
 
 ..................
 Solution Variables
 ..................
 
-.. table::
+.. csv-table:: Solution Variables
+  :header: Name,Size,Type,Short Description
+  :widths: 5,10,5,75
 
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | Variable Name | Size                               | Type    | Short Description                        |
-  +===============+====================================+=========+==========================================+
-  | ``vx``        | (lx1,ly1,lz1,lelv)                 | real    | x-velocity (u)                           |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``vy``        | (lx1,ly1,lz1,lelv)                 | real    | y-velocity (v)                           |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``vz``        | (lx1,ly1,lz1,lelv)                 | real    | z-velocity (w)                           |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``pr``        | (lx2,ly2,lz2,lelv)                 | real    | pressure (pr)                            |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``t``         | (lx1,ly1,lz1,lelt,ldimt)           | real    | temperature (t) and passive scalars (ps) |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``vtrans``    | (lx1,ly1,lz1,lelt,ldimt+1)         | real    | convective coefficient                   |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``vdiff``     | (lx1,ly1,lz1,lelt,ldimt+1)         | real    | diffusion coefficient                    |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``vxlag``     | (lx1,ly1,lz1,lelv,2)               | real    | x-velocity at previous time steps        |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``vylag``     | (lx1,ly1,lz1,lelv,2)               | real    | y-velocity at previous time steps        |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``vzlag``     | (lx1,ly1,lz1,lelv,2)               | real    | z-velocity at previous time steps        |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``prlag``     | (lx2,ly2,lz2,lelv,lorder2)         | real    | pressure at previous time steps          |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``tlag``      | (lx1,ly1,lz1,lelv,lorder-1,ldimt+1)| real    | t and ps at previous time steps          |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``time``      | --                                 | real    | physical time                            |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``dt``        | --                                 | real    | time step size                           |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``dtlag``     | ( 10 )                             | real    | previous time step sizes                 |
-  +---------------+------------------------------------+---------+------------------------------------------+
-  | ``istep``     | --                                 | integer | time step number                         |
-  +---------------+------------------------------------+---------+------------------------------------------+
+  ``vx``, "(lx1,ly1,lz1,lelv)",real,x-velocity (:math:`u`)                  
+  ``vy``, "(lx1,ly1,lz1,lelv)",real,y-velocity (:math:`v`)                  
+  ``vz``,"(lx1,ly1,lz1,lelv)",real,z-velocity (:math:`w`)
+  ``pr``,"(lx2,ly2,lz2,lelv)",real,pressure (:math:`P`)
+  ``t``,"(lx1,ly1,lz1,lelt,ldimt)",real,temperature (:math:`T`) and passives calars (:math:`\phi_i`)
+  ``vtrans``,"(lx1,ly1,lz1,lelt,ldimt+1)",real,"convective coefficient -- :math:`\rho`, :math:`(\rho c_p)`, :math:`\rho_i`"
+  ``vdiff``,"(lx1,ly1,lz1,lelt,ldimt+1)",real,"diffusion coefficient -- :math:`\mu`, :math:`\lambda`, :math:`\Gamma_i`"
+  ``vxlag``,"(lx1,ly1,lz1,lelv,2)",real,:math:`u` at previous time steps
+  ``vylag``,"(lx1,ly1,lz1,lelv,2)",real,:math:`v` at previous time steps
+  ``vzlag``,"(lx1,ly1,lz1,lelv,2)",real,:math:`w` at previous time steps
+  ``prlag``,"(lx2,ly2,lz2,lelv,lorder2)",real,:math:`P` at previous time steps
+  ``tlag``,"(lx1,ly1,lz1,lelv,lorder-1,ldimt+1)",real,:math:`T` and :math:`\phi_i` at previous time steps
+  ``time``,--,real,physical time
+  ``dt``,--,real,time step size
+  ``dtlag``,(10),real,previous time step sizes
+  ``istep``,--,integer,time step number
 
 ..................
 Geometry Variables
 ..................
 
-.. table::
+.. csv-table:: Geometry Variables
+   :header: Name,Size,Type,Description
+   :widths: 5,10,5,75
 
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | Variable Name | Size                      | Type        | Short Description                         |
-  +===============+===========================+=============+===========================================+
-  | ``xm1``       | (lx1,ly1,lz1,lelt)        | real        | x-coordinates for velocity mesh           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``ym1``       | (lx1,ly1,lz1,lelt)        | real        | y-coordinates for velocity mesh           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``zm1``       | (lx1,ly1,lz1,lelt)        | real        | z-coordinates for velocity mesh           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``bm1``       | (lx1,ly1,lz1,lelt)        | real        | mass matrix for velocity mesh             |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``binvm1``    | (lx1,ly1,lz1,lelv)        | real        | inverse mass matrix for velocity mesh     |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``bintm1``    | (lx1,ly1,lz1,lelt)        | real        | inverse mass matrix for t mesh            |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``volvm1``    | --                        | real        | total volume for velocity mesh            |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``voltm1``    | --                        | real        | total volume for t mesh                   |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``xm2``       | (lx2,ly2,lz2,lelv)        | real        | x-coordinates for pressure mesh           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``ym2``       | (lx2,ly2,lz2,lelv)        | real        | y-coordinates for pressure mesh           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``zm2``       | (lx2,ly2,lz2,lelv)        | real        | z-coordinates for pressure mesh           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``unx``       | (lx1,ly1,6,lelt)          | real        | x-component of face unit normal           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``uny``       | (lx1,ly1,6,lelt)          | real        | y-component of face unit normal           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``unz``       | (lx1,ly1,6,lelt)          | real        | z-component of face unit normal           |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``area``      | (lx1,ly1,6,lelt)          | real        | face area (surface integral weights)      |
-  +---------------+---------------------------+-------------+-------------------------------------------+
+   ``xm1``      ,"(lx1,ly1,lz1,lelt)       ",real ,"x-coordinates for velocity mesh"
+   ``ym1``      ,"(lx1,ly1,lz1,lelt)       ",real ,"y-coordinates for velocity mesh"
+   ``zm1``      ,"(lx1,ly1,lz1,lelt)       ",real ,"z-coordinates for velocity mesh"
+   ``bm1``      ,"(lx1,ly1,lz1,lelt)       ",real ,"mass matrix for velocity mesh"
+   ``binvm1``   ,"(lx1,ly1,lz1,lelv)       ",real ,"inverse mass matrix for velocity mesh"
+   ``bintm1``   ,"(lx1,ly1,lz1,lelt)       ",real ,"inverse mass matrix for t mesh"
+   ``volvm1``   ,"--                       ",real ,"total volume for velocity mesh"
+   ``voltm1``   ,"--                       ",real ,"total volume for t mesh"
+   ``xm2``      ,"(lx2,ly2,lz2,lelv)       ",real ,"x-coordinates for pressure mesh"
+   ``ym2``      ,"(lx2,ly2,lz2,lelv)       ",real ,"y-coordinates for pressure mesh"
+   ``zm2``      ,"(lx2,ly2,lz2,lelv)       ",real ,"z-coordinates for pressure mesh"
+   ``unx``      ,"(lx1,ly1,6,lelt)         ",real ,"x-component of face unit normal"
+   ``uny``      ,"(lx1,ly1,6,lelt)         ",real ,"y-component of face unit normal"
+   ``unz``      ,"(lx1,ly1,6,lelt)         ",real ,"z-component of face unit normal"
+   ``area``     ,"(lx1,ly1,6,lelt)         ",real ,"face area (surface integral weights)"
+
+.. _sec:probvars:
 
 .......................
 Problem Setup Variables
 .......................
 
-.. table::
+.. csv-table:: Problem Setup Variables
+   :header: Name,Size,Type,Description
+   :widths: 5,10,5,75
 
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | Variable Name | Size                      | Type        | Short Description                         |
-  +===============+===========================+=============+===========================================+
-  | ``nid``       | --                        | integer     | MPI rank id (lowest rank is always 0)     |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``nio``       | --                        | integer     | I/O node id                               |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``nelv``      | --                        | integer     | number of elements in velocity mesh       |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``nelt``      | --                        | integer     | number of elements in t mesh              |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``ndim``      | --                        | integer     | dimensionality of problem (i.e. 2 or 3)   |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``nsteps``    | --                        | integer     | number of time steps to run               |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``iostep``    | --                        | integer     | time steps between data output            |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``cbc``       | (6,lelt,ldimt+1)          | character*3 | boundary condition                        |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``lglel``     | (lelt)                    | integer     | local to global element number map        |
-  +---------------+---------------------------+-------------+-------------------------------------------+
-  | ``gllel``     | (lelg)                    | integer     | global to local element number map        |
-  +---------------+---------------------------+-------------+-------------------------------------------+
+   "``nid``","--","integer","MPI rank id (lowest rank is always 0)"
+   "``nio``","--","integer","I/O node id"
+   "``nelv``","--","integer","number of elements in velocity mesh"
+   "``nelt``","--","integer","number of elements in t mesh"
+   "``ndim``","--","integer","dimensionality of problem (i.e. 2 or 3)"
+   "``nsteps``","--","integer","number of time steps to run"
+   "``iostep``","--","integer","time steps between data output"
+   "``cbc``","(6,lelt,ldimt+1)","character*3","character boundary condition, contains the 3-character BC code for every face of every element for every field"
+   "``lglel``","(lelt)","integer","local to global element number map"
+   "``gllel``","(lelg)","integer","global to local element number map"
+
+.. _sec:avgvars:
 
 ...................
 Averaging Variables
@@ -390,9 +299,11 @@ Arrays associated with the ``avg_all`` subroutine
 -------------------------
 Commonly used Subroutines
 -------------------------
+``subroutine cmult(x,C,n)``
+    multiplies ``n`` elements of array ``x`` by a constant, ``C``.
 
 ``subroutine rescale_x(x,x0,x1)``
-    Rescales the array ``x`` to be in the range ``(x0,x1)``. This is usually called from ``usrdat2`` in the ``.usr`` file
+    Rescales the array ``x`` to be in the range ``(x0,x1)``. This is usually called from ``usrdat2`` in the ``.usr`` file.
 
 ``subroutine normvc(h1,semi,l2,linf,x1,x2,x3)``
     Computes the error norms of a vector field variable ``(x1,x2,x3)`` defined on mesh 1, the velocity mesh. The error norms are normalized with respect to the volume, with the exception on the infinity norm, ``linf``.
@@ -486,144 +397,6 @@ Commonly used Subroutines
     Computes the surface integral of scalar array ``phi`` over face ``iside`` of element ``ielem``. 
     The resulting integral is storted in ``dphi`` and the area in ``dS``.
 
-.. _mesh_gen: 
-
------------------------------
-Generating a Mesh with Genbox
------------------------------
-
-..........................
-Uniformly Distributed Mesh
-..........................
-
-Suppose you wish to simulate flow through an axisymmetric pipe,
-of radius :math:`R=0.5` and length :math:`L=4`.  You estimate that you will
-need 3 elements in radial :math:`(y)` direction, and 5 in the :math:`x` direction,
-as depicted in :numref:`fig:mesh_axi1`.
-This would be specified by the following input file (called ``pipe.box``)
-to ``genbox``:
-
-.. code-block:: none
-
-   axisymmetric.rea
-   2                      spatial dimension
-   1                      number of fields
-   #
-   #    comments:   This is the box immediately behind the
-   #                refined cylinder in Ugo's cyl+b.l. run.
-   #
-   #
-   #========================================================
-   #
-   Box 1                         Pipe
-   -5 -3                         Nelx  Nely
-   0.0   4.0   1.0               x0  x1   ratio
-   0.0   0.5   1.0               y0  y1   ratio
-   v  ,O  ,A  ,W  ,   ,          BC's:  (cbx0, cbx1, cby0, cby1, cbz0, cbz1)
-
-.. _fig:mesh_axi1:
-
-.. figure:: figs/mesh_axi1.png
-    :align: center
-    :figclass: align-center
-    :alt: axis-pipe-mesh
-
-    Axisymmetric pipe mesh.
-
-- The first line of this file supplies the name of an existing 2D ``.rea`` file that has the appropriate run parameters (viscosity, timestep size, etc.). These parameters can be modified later, but it is important that ``axisymmetric.rea`` be a 2D file, and not a 3D file.
-- The second line indicates the number of fields for this simulation, in this case, just 1, corresponding to the velocity field (i.e., no heat transfer).
-- The next set of lines just shows how one can place comments into a ``genbox`` input file.
-- The line that starts with "Box" indicates that a new box is starting, and that the following lines describe a typical box input.  Other possible key characters (the first character of Box, "B") are "C" and "M", more on those later.
-- The first line after "Box" specifies the number of elements in the
-  :math:`x` and :math:`y` directions.   The fact that these values are negative indicates
-  that you want ``genbox`` to automatically generate the element distribution
-  along each axis, rather than providing it by hand.  (More on this below.)
-- The next line specifies the distribution of the 5 elements in the :math:`x` direction.
-  The mesh starts at :math:`x=0` and ends at :math:`x=4.0`.  The ``ratio`` indicates the
-  relative size of each element, progressing from left to right.
-- The next line specifies the distribution of the 3 elements in the :math:`y` direction,
-  starting at :math:`y=0` and going to :math:`y=0.5`.  Again,
-  ``ratio`` =1.0 indicates that the elements will be of uniform height.
-- The last line specifies boundary conditions on each of the 4 sides of the
-  box:
-
-  - Lower-case *v* indicates that the left :math:`(x)` boundary is to be a velocity
-    boundary condition, with a user-specified distribution determined by
-    routine ``userbc`` in the ``.usr`` file.  (Upper-case :math:`V` would indicate that
-    the velocity is constant, with values specified in the .rea file.)
-  - *O* indicates that the right :math:`(x)` boundary is an outflow boundary -- the
-    flow leaves the domain at the left and the default exit pressure is :math:`p=0`.
-  - *A* indicates that the lower :math:`(y)` boundary is the axis---this condition
-    is mandatory for the axisymmetric case, given the fact that the lower domain
-    boundary is at :math:`y=0`, which corresponds to :math:`r=0`.
-  - *W* indicates that the upper :math:`(y)` boundary is a wall.  This would be
-    equivalent to a *v* or *V* boundary condition, with :math:`{\bf u}=0`.
-
-...........
-Graded Mesh
-...........
-
-.. _fig:mesh_axi2:
-
-.. figure:: figs/mesh_axi2.png
-    :align: center
-    :figclass: align-center
-    :alt: axis-pipe-mesh-graded
-
-    Axisymmetric pipe mesh, graded
-
-Suppose you wish to have the mesh be graded,
-that you have increased resolution near the wall.
-In this case you change ``ratio`` in the :math:`y`-specification
-of the element distribution.  For example, changing the 3 lines
-in the above ``genbox`` input file from
-
-.. code-block:: none
-
-   -5 -3                         Nelx  Nely
-   0.0   4.0   1.0               x0  x1   ratio
-   0.0   0.5   1.0               y0  y1   ratio
-
-to
-
-.. code-block:: none
-
-   -5 -4                         Nelx  Nely
-   0.0   4.0   1.0               x0  x1   ratio
-   0.0   0.5   0.7               y0  y1   ratio
-
-yields the mesh shown in :numref:`fig:mesh_axi2`.
-
-...........................
-User-Specified Distribution
-...........................
-
-.. _fig:mesh_axi3:
-
-.. figure:: figs/mesh_axi3.png
-    :align: center
-    :figclass: align-center
-    :alt: axis-pipe-mesh-user
-
-    Axisymmetric pipe mesh, user specified.
-
-You can also specify your own, precise, distribution of element
-locations.   For example, another graded mesh similar to the
-one of the preceding example could be built by changing the
-``genbox`` input file to contain:
-
-.. code-block:: none
-
-   -5  4                                               Nelx  Nely
-   0.0   4.0   1.0                                     x0  x1   ratio
-   0.000    0.250    0.375    0.450    0.500           y0  y1 ... y4
-
-Here, the positive number of elements for the :math:`y` direction indicates
-that ``genbox`` is expecting ``Nely+1`` values of :math:`y` positions on the
-:math:`y`-element distribution line.   This is the ``genbox`` default, which
-explains why it corresponds to ``Nely`` :math:`>` 0.  The corresponding mesh
-is shown in :numref:`fig:mesh_axi3`.
-
 -----------------------
 Mesh Modification
 -----------------------
@@ -692,8 +465,6 @@ The result of above changes is shown in :numref:`fig:wavypipe`.
 
     Axisymmetric pipe mesh.
 
-.. _sec:genbox:
-
 .......................................
 Cylindrical/Cartesian-transition Annuli
 .......................................
@@ -718,7 +489,7 @@ Cylindrical/Cartesian-transition Annuli
 
 More sophisticated
 transition treatments may be generated using the GLOBAL REFINE options in
-``prenek`` or through an upgrade of ``genb7``, as demand warrants.
+*preNek* or through an upgrade of ``genb7``, as demand warrants.
 Example 2D and 3D input files are provided in the ``nek5000/doc`` files
 ``box7.2d`` and ``box7.3d``.
 :numref:`fig:cylbox_2d` shows a 2D example generated using
@@ -744,90 +515,7 @@ the ``box7.2d`` input file, which reads:
    v  ,W  ,E  ,E  ,    bc's (3 characters + comma)
     
 An example of a mesh is shown in :numref:`fig:cylbox_2d`.   The mesh has been quad-refined
-once with oct-refine option of ``prenek``. The 3D counterpart to this
+once with oct-refine option of *preNek*. The 3D counterpart to this
 mesh could joined to a hemisphere/Cartesian transition built with
-the spherical mesh option in ``prenek``.
-
-----------------------------
-Mesh Extrusion and Mirroring
-----------------------------
-
-In ``nek5000/tools``, there is a code ``n2to3.f`` that can be compiled with your
-local fortran compiler (preferably not g77).
-By running this code, you can extend two dimensional domains to
-three dimensional ones with a user-specified number of levels in the
-:math:`z`-direction.  Such a mesh can then be modified using the mesh modification
-approach. Assuming you have a valid two-dimensional mesh, ``n2to3`` is straightforward
-to run.  Below is a typical session, upon typing ``n2to3`` the user is prompted at the command line
-
-.. code-block:: none
-
-    Input old (source) file name:
-   h2e
-    Input new (output) file name:
-   h3e
-    input number of levels: (1, 2, 3,... etc.?):
-   16
-    input z min:
-   0
-    input z max:
-   16
-    input gain (0=custom,1=uniform,other=geometric spacing):
-   1
-    This is for CEM: yes or no:
-   n
-    Enter Z (5) boundary condition (P,v,O):
-   v
-    Enter Z (6) boundary condition (v,O):
-   0
-    this is cbz: v  O   <---
-
-         320 elements written to h3e.rea
-   FORTRAN STOP
-
-In this context CEM stands for computational electromagnetics, a spin-off of the original Nek5000 code.
-
-The domain in which the fluid flow/heat transfer
-problem is solved consists of two distinct subdomains. The
-first subdomain is that part of the region occupied by
-fluid, denoted :math:`\Omega_f`, while the second subdomain is that part
-of the region occupied by a solid, denoted :math:`\Omega_s`. These two
-subdomains are depicted in :numref:`fig-walls`. The entire domain is denoted as :math:`D=\Omega_f \cup \Omega_s`.
-The fluid problem is solved in the domain :math:`\Omega_f`, while the
-temperature in the energy equation is solved in the
-entire domain; the passive scalars can be solved in either
-the fluid or the entire domain.
-
-We denote the entire boundary of :math:`\Omega_f` as :math:`\partial \Omega_f`, that part
-of the boundary of :math:`\Omega_f` which is not shared by :math:`\Omega_s` as
-:math:`\overline{\partial \Omega_f}`, and
-that part of the boundary of :math:`\Omega_f` which is shared by :math:`\Omega_s`.
-In addition, :math:`\partial \Omega_{s}, \overline{\partial \Omega_s}` are analogously defined.
-These distinct portions of the
-domain boundary are illustrated in :numref:`fig-walls`.
-The restrictions on the domain for Nek5000 are itemized below.
-
-- The domain :math:`\Omega=\Omega_f \cup \Omega_s` must correspond either to a
-  planar (Cartesian) two-dimensional geometry, or to the
-  cross-section of an axisymmetric region specified by
-  revolution of the cross-section about a specified axis, or
-  by a (Cartesian) three-dimensional geometry.
-- For two-dimensional and axisymmetric geometries, the
-  boundaries of both subdomains, :math:`\partial \Omega_f` and
-  :math:`\partial \Omega_s`, must be
-  representable as (or at least approximated by) the union of
-  straight line segments, splines, or circular arcs.
-- Nek5000 can interpret a two-dimensional image as either
-  a planar Cartesian geometry, or
-  the cross-section of an axisymmetric body. In the case of
-  the latter, it is assumed that the :math:`y`-direction is the radial
-  direction, that is, the axis of revolution is at :math:`y=0`.
-  Although an axisymmetric geometry is, in fact,
-  three-dimensional, Nek5000 can assume that the field variables
-  are also axisymmetric ( that is, do not depend on azimuth,
-  but only :math:`y`, that is, radius, :math:`x`, and :math:`t` ), thus reducing the
-  relevant equations to "two-dimensional" form.
-
-Fully general three-dimensional meshes generated by other softwares
-packages can be input to ``prenek`` as imported meshes.
+the spherical mesh option in *preNek*.
 
