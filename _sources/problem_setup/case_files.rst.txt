@@ -22,9 +22,9 @@ Additional *optional* case files may be generated or included:
 SESSION.NAME
 ------------
 
-To run Nek5000, each simulation must have a ``SESSION.NAME`` file.
+To run *Nek5000*, each simulation must have a ``SESSION.NAME`` file.
 This file is read in by the code and gives the path to the relevant files describing the structure and parameters of the simulation.
-The ``SESSION.NAME`` file is a file that contains the name of the simulation and the full path to supporting files.
+It contains the name of the simulation and the full path to supporting files.
 For example, to run the eddy example from the repository, the ``SESSION.NAME`` file would look like:
 
 .. code-block:: none
@@ -32,7 +32,13 @@ For example, to run the eddy example from the repository, the ``SESSION.NAME`` f
   eddy_uv
   /home/user_name/Nek5000/short_tests/eddy/
 
-Note that this file is generated automatically by the ``nek``, ``nekb``, ``nekmpi`` and ``nekbmpi`` scripts at runtime.
+This file is generated automatically by the ``nek``, ``nekb``, ``nekmpi``, ``nekbmpi``, ``neknek`` and ``neknekb`` scripts at runtime.
+If you are calling ``$ mpirun`` directly, such as in a submission script for an HPC system, you must manually generate this file or setup your script to generate it for you.
+
+.. Warning::
+
+  When using :ref:`NekNek <neknek>`, ``SESSION.NAME`` is substantially different. 
+  We recommend running the example and checking the ``neknek`` script for further information.
 
 .. _case_files_par:
 
@@ -60,203 +66,203 @@ The ``.par`` file follows the structure exemplified below.
 
 The sections are:
 
-* ``GENERAL`` (mandatory)
-* ``PROBLEMTYPE``
-* ``MESH``
-* ``VELOCITY``
-* ``PRESSURE`` (required for velocity)
-* ``TEMPERATURE``
-* ``SCALAR%%``
-* ``CVODE``
+* ``GENERAL`` (**mandatory**, see: :ref:`sec:generalpars`)
+* ``PROBLEMTYPE`` (see: :ref:`sec:problemtypepars`)
+* ``MESH`` (see: :ref:`sec:meshpars`)
+* ``VELOCITY`` (see: :ref:`sec:velpars`)
+* ``PRESSURE`` (**required for velocity** see: :ref:`sec:pressurepars`)
+* ``TEMPERATURE`` (see: :ref:`sec:temppars`)
+* ``SCALAR%%`` (see: :ref:`sec:scalarpars`)
+* ``CVODE`` (see: :ref:`sec:cvodepars`)
 
-When scalars are used, the keys of each scalar are defined under the section ``SCALAR%%`` varying
-between ``SCALAR01`` and ``SCALAR99``. The descripton of the keys of each section is given in the
-following tables (all keys/values are case insensitive). The value assigned to each key can be a
-user input (e.g. a <real> value) or one of the avaliable options listed in the tables below.
+Additionally, some parameters are common to multiple sections:
+
+* :ref:`sec:commonpars` (Common to all field variables)
+* :ref:`sec:tspars` (Common to both temperature and passive scalar fields)
+
+When scalars are used, the keys of each scalar are defined under the section ``SCALAR%%`` varying between ``SCALAR01`` and ``SCALAR99``. 
+The descripton of the keys of each section is given in the following tables (all keys/values are case insensitive). 
+The value assigned to each key can be a user input (e.g. a <real> value) or one of the avaliable options listed in the tables below. 
 Values in parentheses denote the default value.
 
+.. _sec:generalpars:
+
+..................
+General Parameters
+..................
 
 .. _tab:generalparams:
 
-.. table:: ``GENERAL`` keys in the ``.par`` file
+.. csv-table:: ``GENERAL`` keys in the ``.par`` file
+   :widths: 20,20,60
+   :header: Key, Value(s), Description
 
-   +-------------------------+-----------------+----------------------------------------------+
-   |   Key                   | | Value(s)      | | Description                                |
-   +=========================+=================+==============================================+
-   | ``startFrom``           | | ``<string>``  | | Absolute/relative path of the field file   |
-   |                         |                 | | to restart the simulation from             |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``stopAt``              | | ``(numSteps)``| | Stop mode                                  |
-   |                         | | ``endTime``   |                                              |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``endTime``             | | ``<real>``    | | Final physical time at which we want to    |
-   |                         |                 | | our simulation to stop                     |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``numSteps``            | | ``<real>``    | | Number of time steps instead of specifying |
-   |                         |                 | | final physical time                        |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``dt``                  | | ``<real>``    | | Specifies the step size or in case of a    |
-   |                         |                 | | a variable time step the maximum step size |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``variableDT``          | | ``(no)``      | | Controls if the step size will be adjusted |
-   |                         | | ``yes``       | | to match the targetCFL                     |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``targetCFL``           | | ``<real>``    | | Sets stability/target CFL number for       |
-   |                         |                 | | OIFS or variable time steps                |
-   |                         |                 | | (fixed to 0.5 for standard extrapolation   |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``writeControl``        | | ``(timeStep)``| | Specifies whether checkpointing is based   |
-   |                         | | ``runTime``   | | on number of time steps or physical time   |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``writeInterval``       | | ``<real>``    | | Checkpoint frequency in time steps or      |
-   |                         |                 | | physical time                              |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``filtering``           | | ``(none)``    | | Specifies the filtering method             |
-   |                         | | ``explicit``  |                                              |
-   |                         | | ``hpfrt``     |                                              |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``filterModes``         | | ``<int>``     | | Specifies the number of modes filtered as  |
-   |                         |                 | | an alternative to specifying the cutoff    |
-   |                         |                 | | ratio                                      |
-   |                         |                 | | Note: requires the use of at least 2 modes |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``filterCutoffRatio``   | | ``<real>``    | | Ratio of modes not affected by the filter  |
-   |                         |                 | | Use i.e. for stabilization or LES 0.9/0.65 |
-   |                         |                 | | as an alternative to specifying the number |
-   |                         |                 | | of modes explicitly                        |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``filterWeight``        | | ``<real>``    | | Sets the filter strength of transfer       |
-   |                         |                 | | function of the last mode (explicit) or the|
-   |                         |                 | | relaxation parameter in case of hpfrt      |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``writeDoublePrecision``| | ``no``        | | Sets the precision of the field files      |
-   |                         | | ``(yes)``     |                                              |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``writeNFiles``         | | ``(1)``       | | Sets the number of output files            |
-   |                         |                 | | By default a parallel shared file is used  |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``dealiasing``          | | ``no``        | | Enable/diasble over-integration            |
-   |                         | | ``(yes)``     |                                              |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``timeStepper``         | | ``BDF1``      | | Time integration order                     |
-   |                         | | ``(BDF2)``    |                                              |
-   |                         | | ``BDF3``      |                                              |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``extrapolation``       | | ``(standard)``| | Extrapolation method                       |
-   |                         | | ``OIFS``      |                                              |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``optLevel``            | | ``(2)``       | | Optimization level                         |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``logLevel``            | | ``(2)``       | | Verbosity level                            |
-   +-------------------------+-----------------+----------------------------------------------+
-   | ``userParam%%``         | | ``<real>``    | | User parameter (can be accessed through    |
-   |                         |                 | | uparam(%) array in ``.usr``                |
-   +-------------------------+-----------------+----------------------------------------------+
+   ``startFrom``, "``<string>``", "Absolute/relative path of the field file to restart the simulation from. Also includes several restart options (see :ref:`features_restart` for details)"
+   ``stopAt``, "(``numSteps``), ``endTime``", "Stops the simulation after a given number of time steps or at a given physical time."
+   ``endTime``, "``<real>``", "Final physical time at which we want to our simulation to stop. Required for ``stopAt = endTime``."
+   ``numSteps``, "``<int>``", "Number of time steps until the simulation stops. Required for ``stopAt = numSteps``."
+   ``dt``, "``<real>``", "Specifies the step size or in case of a variable time step, the maximum step size"
+   ``variableDT``, "(``no``), ``yes``", "Controls if the step size will be adjusted to match the targetCFL."
+   ``initialDT``, "``<real>``", "Controls the initial time step size. Requires ``variableDT = yes``."
+   ``targetCFL``, "``<real>``", "Sets stability/target CFL number for OIFS or variable time steps. This is fixed to 0.5 for ``extrapolation = standard``" 
+   ``writeControl``, "(``timeStep``), ``runTime``", "Specifies whether checkpointing is based on number of time steps or physical time."
+   ``writeInterval``, "``<real>/<int>``", "Checkpoint frequency in physical time (``<real>``) or number of time steps (``<int>``)"
+   ``filtering``, "(``none``), ``explicit``, ``hpfrt``", "Specifies the filtering method. See :ref:`sec:filter` for details."
+   ``filterModes``, "``<int>``", "Specifies the number of modes filtered as an alternative to specifying the cutoff ratio. Note: requires the use of at least 2 modes. See :ref:`sec:filter` for details."
+   ``filterCutoffRatio``, "``<real>``", "Ratio of modes not affected by the filter. Use as an alternative to specifying the number of modes explicitly. See :ref:`sec:filter` for details."
+   ``filterWeight``, "``<real>``", "Sets the filter strength of transfer function of the last mode (explicit) or the relaxation parameter in case of hpfrt. See :ref:`sec:filter` for more information."
+   ``writeDoublePrecision``, "``no``, (``yes``)", "Sets the precision of the output field files."
+   ``writeNFiles``, "``<int>``, (``1``)", "Sets the number of output files. By default a parallel shared file is used."
+   ``dealiasing``, "``no``, ``yes``", "Enable/diasble over-integration."
+   ``timeStepper``, "``BDF1``, (``BDF2``), ``BDF3``", "Time integration order."
+   ``extrapolation``, "(``standard``), ``OIFS``", "Extrapolation method. Can be used to achieve CFL > 0.5 with ``OIFS``."
+   ``constFlowRate``, "(``none``), ``X``, ``Y``, ``Z``", "Prescribes a constant volumetric flow in the given direction. Requires ``meanVolumetricFlow`` or ``meanVelocity``."
+   ``meanVolumetricFlow``, "``<real>``", "Sets the volumetric flow rate in the direction of ``constFlowRate``."
+   ``meanVelocity``, "``<real>``", "Sets the mean velocity (volume-weighted velocity mean) in the direction of ``constFlowRate``."
+   ``optLevel``, "``<int>``, (``2``)", "Optimization level"
+   ``logLevel``, "``<int>``, (``2``)", "Controls the verbosity level of the logfile."
+   ``userParam%%``, "``<real>``", "User parameter (can be accessed through uparam(%) array in ``.usr``. Supports up to 20 parameters."
 
+.. _sec:problemtypepars:
 
+.......................
+Problem Type Parameters
+.......................
 
 .. _tab:probtypeparams:
 
-.. table:: ``PROBLEMTYPE`` keys in the ``.par`` file
+.. csv-table:: ``PROBLEMTYPE`` keys in the ``.par`` file
+   :header: Key,Value(s),Description
+   :widths: 20,20,60
 
-   +---------------------------+---------------------+--------------------------------------------------+
-   |   Key                     | | Value(s)          | | Description                                    |
-   +===========================+=====================+==================================================+
-   | ``equation``              | | ``(incompNS)``    | | Specifies equation type                        |
-   |                           | | ``lowMachNS``     |                                                  |
-   |                           | | ``steadyStokes``  |                                                  |
-   |                           | | ``incompLinNS``   |                                                  |
-   |                           | | ``incompLinAdjNS``|                                                  |
-   |                           | | ``incompMHD``     |                                                  |
-   |                           | | ``compNS``        |                                                  |
-   |                           |                     |                                                  |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``axiSymmetry``           | | ``(no)``          | | Axisymmetric problem                           |
-   |                           | | ``yes``           |                                                  |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``swirl``                 | | ``(no)``          | | Enable axisymmetric azimuthal velocity         |
-   |                           | | ``yes``           | | component (stored in temperature field         |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``cyclicBoundaries``      | | ``(no)``          | | Sets cyclic periodic boundaries                |
-   |                           | | ``yes``           |                                                  |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``numberOfPerturbations`` | | ``(1)``           | | Number of perturbations for linearized NS      |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``solveBaseFlow``         | | ``(no)``          | | Solve for base flow in case of linearized NS   |
-   |                           | | ``yes``           |                                                  |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``variableProperties``    | | ``(no)``          | | Enable variable transport properties           |
-   |                           | | ``yes``           |                                                  |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``stressFormulation``     | | ``(no)``          | | Enable stress formulation                      |
-   |                           | | ``yes``           |                                                  |
-   +---------------------------+---------------------+--------------------------------------------------+
-   | ``dp0dt``                 | | ``(no)``          | | Enable time-varying thermodynamic pressure     |
-   |                           | | ``yes``           |                                                  |
-   +---------------------------+---------------------+--------------------------------------------------+
+   ``equation``, "(``incompNS``), ``lowMachNS``, ``steadyStokes``, ``incompLinNS``, ``incompLinAdjNS``, ``incompMHD``, ``compNS``", "Specifies equation type"
+   ``axiSymmetry``, "(``no``), ``yes``", "Axisymmetric problem"
+   ``swirl``, "(``no``), ``yes``", "Enable axisymmetric azimuthal velocity component (stored in temperature field"
+   ``cyclicBoundaries``, "(``no``), ``yes``", "Sets cyclic periodic boundaries"
+   ``numberOfPerturbations``, "(``1``)", "Number of perturbations for linearized NS"
+   ``solveBaseFlow``, "(``no``), ``yes``", "Solve for base flow in case of linearized NS"
+   ``variableProperties``, "(``no``), ``yes``", "Enable variable transport properties"
+   ``stressFormulation``, "(``no``), ``yes``", "Enable stress formulation"
+   ``dp0dt``, "(``no``), ``yes``", "Enable time-varying thermodynamic pressure"
+
+.. _sec:commonpars:
+
+.......................
+Common Parameters
+.......................
+
+These parameters are available for field variables.
 
 .. _tab:commonparams:
 
-.. table:: ``COMMON`` keys for all field variables in the ``.par`` file
+.. csv-table:: ``COMMON`` keys for all field variables in the ``.par`` file
+   :header: Key,Value(s),Description
+   :widths: 20,20,60
 
-   +-------------------------+-----------------+-------------------------------------------------------+
-   |   Key                   | | Value(s)      | | Description                                         |
-   +=========================+=================+=======================================================+
-   | ``residualTol``         | | ``<real>``    | | Residual tolerance used by solver (not for CVODE)   |
-   +-------------------------+-----------------+-------------------------------------------------------+
-   | ``residualProj``        | | ``(no)``      | | Controls the residual projection                    |
-   |                         | | ``yes``       |                                                       |
-   +-------------------------+-----------------+-------------------------------------------------------+
-   | ``writeToFieldFile``    | | ``no``        | | Controls if fields will be written on output        |
-   |                         | | ``(yes)``     |                                                       |
-   +-------------------------+-----------------+-------------------------------------------------------+
+   ``residualTol``     , "``<real>``       ", Residual tolerance used by solver (not for CVODE)   
+   ``residualProj``    , "(``no``), ``yes``", Controls the residual projection            
+   ``writeToFieldFile``, "``no``, (``yes``)", Controls if fields will be written on output        
+   ``boundaryTypeMap`` , "``<string-list>``", Maps the boundary condition types to boundary IDs for third-party meshes 
+
+.. Note::
+
+   Some boundary types have plain-english equivalents that can be used in the ``.par`` file in lieu of the character identifiers. See :numref:`tab:engvidentifiers` and :numref:`tab:engtidentifiers`. 
+   Additionally, ``none`` can be used to keep the ``cbc`` array empty.
+
+.. _sec:engidentifiers:
+
+Plain-English BC Identifiers
+````````````````````````````
+
+The plain-English boundary condition identifiers can be used in the ``.par`` file instead of the character identifier codes. 
+Note that some character codes have multiple corresponding plain-English identifiers.
+
+.. _tab:engvidentifiers:
+
+.. csv-table:: Velocity boundary identifier plain-English equivalents
+   :header: Identifier,Equivalents
+   :widths: 10,30
+
+   ``A``, axis
+   ``v``,"dirichlet, inlet"
+   ``int``,interpolated
+   ``O``,outlet
+   ``o``,pressure
+   ``P``,periodic
+   ``SYM``,symmetry
+   ``W``,wall
+
+.. _tab:engtidentifiers:
+
+.. csv-table:: Temperature and passive scalar boundary identifier plain-English equivalents
+   :header: Identifier,Equivalents
+   :widths: 10,30
+
+   ``A``,axis
+   ``c``,"convection, robin"
+   ``t``,"dirichlet, inlet"
+   ``f``,"flux, neumann"
+   ``I``,"insulated, outlet, symmetry"
+   ``int``,interpolated
+   ``P``,periodic
+   ``r``,radiation
+
+.. _sec:meshpars:
+
+.......................
+Mesh Parameters
+.......................
 
 .. _tab:meshparams:
 
-.. table:: ``MESH`` keys in the ``.par`` file
+.. csv-table:: ``MESH`` keys in the ``.par`` file
+   :widths: 20,20,60
+   :header: Key, Value(s), Description
 
-   +-------------------------+-----------------+-------------------------------------------------------+
-   |   Key                   | | Value(s)      | | Description                                         |
-   +=========================+=================+=======================================================+
-   | ``motion``              | | ``(none)``    | | Mesh motion solver                                  |
-   |                         | | ``user``      |                                                       |
-   |                         | | ``elasticity``|                                                       |
-   +-------------------------+-----------------+-------------------------------------------------------+
-   | ``viscosity``           | | ``(0.4)``     | | Diffusivity for elasticity solver                   |
-   +-------------------------+-----------------+-------------------------------------------------------+
-   | ``numberOfBCFields``    | | ``(nfields)`` | | Number of field variables which have a boundary     |
-   |                         |                 | |  condition in ``.re2`` file                         |
-   +-------------------------+-----------------+-------------------------------------------------------+
-   | ``firstBCFieldIndex``   | | ``(1 or 2)``  | | Field index of the first BC specified in ``.re2``   |
-   |                         |                 | | file                                                |
-   +-------------------------+-----------------+-------------------------------------------------------+
+   ``boundaryIDMap``,"``<int-list>``, (``1,2,3...``)",Maps the boundary types to their corresponding boundary IDs
+   ``motion``, "(``none``), ``user``, ``elasticity``", "Mesh motion solver"
+   ``viscosity``, "``<real>``, (``0.4``)", Diffusivity for elasticity solver
+   ``numberOfBCFields``, (``nfields``), Number of field variables which have a boundary condition in ``.re2`` file
+   ``firstBCFieldIndex``, (``1``) or ``2``, Field index of the first BC specified in ``.re2`` file 
+
+.. _sec:velpars:
+
+.......................
+Velocity Parameters
+.......................
 
 .. _tab:velocityparams:
 
-.. table:: ``VELOCITY`` keys in the ``.par`` file
+.. csv-table:: ``VELOCITY`` keys in the ``.par`` file
+   :widths: 15,10,75
+   :header: Key,Value(s),Description
 
-   +-------------------------+--------------+------------------------------------------------+
-   |   Key                   | | Value(s)   | | Description                                  |
-   +=========================+==============+================================================+
-   | ``viscosity``           | | ``<real>`` | | Dynamic viscosity                            |
-   |                         |              | | A negative value sets the Reynolds number    |
-   +-------------------------+--------------+------------------------------------------------+
-   | ``density``             | | ``<real>`` | | Density                                      |
-   +-------------------------+--------------+------------------------------------------------+
+   ``viscosity``, ``<real>``, Dynamic viscosity. A negative value sets the Reynolds number
+   ``density``, ``<real>``, Density
+
+.. _sec:pressurepars:
+
+.......................
+Pressure Parameters
+.......................
 
 .. _tab:pressureparams:
 
-.. table:: ``PRESSURE`` keys in the ``.par`` file
+.. csv-table:: ``PRESSURE`` keys in the ``.par`` file
+   :widths: 20, 15, 65
+   :header: Key, Value(s), Description
 
-   +-------------------------+------------------+-----------------------------------------------+
-   |   Key                   | | Value(s)       | | Description                                 |
-   +=========================+==================+===============================================+
-   | ``preconditioner``      | | ``(semg_xxt)`` | | Preconditioning method                      |
-   |                         | | ``semg_amg``   | | First time usage of AMG will write three    |
-   |                         |                  | | dump files to disc. Subsequently please run |
-   |                         |                  | | the amg_hypre tool to create the setup files|
-   |                         |                  | | required for the AMG solver initialization  |
-   +-------------------------+------------------+-----------------------------------------------+
+   ``preconditioner``, (``semg_xxt``),"Standard preconditioning method. Requires no additional setup. Only recommended for problems with :math:`E<350,000`."
+     --,``semg_amg``, "First time usage of ``semg_amg`` with write three dump files to disc. The ``amg_hypre`` tool will then need to be run to create the setup files required for the AMG solver initialization."
+     --,``semg_amg_hypre``, "Recommended for :math:`E≥350,000`. Requires :ref:`compiling with HYPRE support <build_pplist>`."
+     --,``fem_amg_hypre``, "May be faster for meshes with high aspect ratios. Requires :ref:`compiling with HYPRE support <build_pplist>`."
+    ``solver``, "(``GMRES``), ``CGFLEX``", Solver for pressure
+
+.. _sec:tspars:
+
+................................................
+Temperature and Passive Scalar Common Parameters
+................................................
 
 .. _tab:tpscommonparams:
 
@@ -265,15 +271,21 @@ Values in parentheses denote the default value.
    +-------------------------+--------------+--------------------------------------------+
    |   Key                   | | Value(s)   | | Description                              |
    +=========================+==============+============================================+
-   | ``solver``              | | ``(helm)`` | | Solver for scalar                        |
+   | ``solver``              | | (``helm``) | | Solver for scalar                        |
    |                         | | ``cvode``  |                                            |
    |                         | | ``none``   |                                            |
    +-------------------------+--------------+--------------------------------------------+
    | ``advection``           | | ``no``     | | Controls if advection is present         |
-   |                         | | ``(yes)``  |                                            |
+   |                         | | (``yes``)  |                                            |
    +-------------------------+--------------+--------------------------------------------+
    | ``absoluteTol``         | | ``<real>`` | | Absolute tolerance used by CVODE         |
    +-------------------------+--------------+--------------------------------------------+
+
+.. _sec:temppars:
+
+................................................
+Temperature Parameters
+................................................
 
 .. _tab:temperatureparams:
 
@@ -282,7 +294,7 @@ Values in parentheses denote the default value.
    +--------------------------+--------------+----------------------------------------------+
    |   Key                    | | Value(s)   | | Description                                |
    +==========================+==============+==============================================+
-   | ``ConjugateHeatTransfer``| | ``(no)``   | | Controls conjugate heat transfer           |
+   | ``ConjugateHeatTransfer``| | (``no``)   | | Controls conjugate heat transfer           |
    |                          | | ``yes``    |                                              |
    +--------------------------+--------------+----------------------------------------------+
    | ``conductivity``         | | ``<real>`` | | Thermal conductivity                       |
@@ -291,6 +303,12 @@ Values in parentheses denote the default value.
    +--------------------------+--------------+----------------------------------------------+
 
 Note: ``[TEMPERATURE] solver = none`` is incompatible with ``[PROBLEMTYPE] equation = lowMachNS`` without defining a custom thermal divergence in the ``usr`` file.
+
+.. _sec:scalarpars:
+
+................................................
+Passive Scalar Parameters
+................................................
 
 .. _tab:scalarparams:
 
@@ -304,6 +322,12 @@ Note: ``[TEMPERATURE] solver = none`` is incompatible with ``[PROBLEMTYPE] equat
    | ``diffusivity``          | | ``<real>``   | | Diffusivity                              |
    +--------------------------+----------------+--------------------------------------------+
 
+.. _sec:cvodepars:
+
+................................................
+CVODE Parameters
+................................................
+
 .. _tab:cvodeparams:
 
 .. table:: ``CVODE`` keys in the ``.par`` file
@@ -314,9 +338,9 @@ Note: ``[TEMPERATURE] solver = none`` is incompatible with ``[PROBLEMTYPE] equat
    | ``relativeTol``          | | ``<real>``   | | Relative tolerance (applies to all scalars)|
    +--------------------------+----------------+----------------------------------------------+
    | ``stiff``                | | ``no``       | | Controls if BDF or Adams Moulton is used   |
-   |                          | | ``(yes)``    |                                              |
+   |                          | | (``yes``)    |                                              |
    +--------------------------+----------------+----------------------------------------------+
-   | ``preconditioner``       | | ``(none)``   | | Preconditioner method                      |
+   | ``preconditioner``       | | (``none``)   | | Preconditioner method                      |
    |                          | | ``user``     |                                              |
    +--------------------------+----------------+----------------------------------------------+
    | ``dtMax``                | | ``<real>``   | | Maximum internal step size                 |
@@ -334,7 +358,6 @@ Mesh File (.re2)
 Stores the mesh and boundary condition.
 
 TODO: Update to re2
-
 
 ...................
 Header
@@ -379,7 +402,7 @@ Element data
     Following the header, all elements are listed. The fluid elements are listed
     first, followed by all solid elements if present.
 
-    The data following the header is formatted as shown in :numref:`tab:element`. This provides all the coordinates of an element for top and bottom faces. The numbering of the vertices is shown in Fig. :numref:`fig:elorder`. The header for each element as in :numref:`tab:element`, i.e. ``[1A] GROUP`` is reminiscent of older Nek5000 format and does not impact the mesh generation at this stage.
+    The data following the header is formatted as shown in :numref:`tab:element`. This provides all the coordinates of an element for top and bottom faces. The numbering of the vertices is shown in Fig. :numref:`fig:elorder`. The header for each element as in :numref:`tab:element`, i.e. ``[1A] GROUP`` is reminiscent of older *Nek5000* format and does not impact the mesh generation at this stage.
 
       .. _fig:elorder:
 
@@ -502,146 +525,45 @@ Boundaries
          | P       | 23      | 5         | 149.000      | 6.00000        | 0.00000 | 0.00000 | 0.00000 |
          +---------+---------+-----------+--------------+----------------+---------+---------+---------+
 
-
-.. _case_files_usr:
-
------------------------------
-User Routines File (.usr)
------------------------------
-
-This file implements the the user interface to Nek5000. What follows is a brief description of the available
-subroutines.
-
-.. _case_files_uservp:
-
-...................
-uservp
-...................
-
-This function can be used  to specify customized or solution dependent material
-properties.
-
-Example:
-
-.. code-block:: fortran
-
-      if (ifield.eq.1) then
-         udiff  = a * exp(-b*temp) ! dynamic viscosity
-         utrans = 1.0              ! density
-      else if (ifield.eq.2) then
-         udiff  = 1.0              ! conductivity
-         utrans = 1.0              ! rho*cp
-      endif
-
-...................
-userf
-...................
-
-This functions sets the source term (which will be subsequently be multiplied by
-the density) for the momentum equation.
-
-Example:
-
-.. code-block:: fortran
-
-      parameter(g = 9.81)
-
-      ffx = 0.0
-      ffy = 0.0
-      ffz = -g ! gravitational acceleration
-
-...................
-userq
-...................
-
-This functions sets the source term for the energy (temperature) and passive scalar equations.
-
-...................
-userbc
-...................
-
-This functions sets boundary conditions. Note, this function is only called
-for special boundary condition types and only for points on the boundary surface.
-
-...................
-useric
-...................
-
-This functions sets the initial conditions.
-
-...................
-userchk
-...................
-
-This is a general purpose function that gets executed before the time stepper and after every time
-step.
-
-...................
-userqtl
-...................
-
-This function can be used  to specify a cutomzized thermal diveregence for the low Mach solver.
-step.
-
-...................
-usrdat
-...................
-
-This function can be used to modify the element vertices and is called before the spectral element mesh (GLL points) has been laid out.
-
-...................
-usrdat2
-...................
-
-This function can be used to modify the spectral element mesh.
-The geometry information (mass matrix, surface normals, etc.) will be rebuilt after this routine is called.
-
-...................
-usrdat3
-...................
-
-This function can be used to initialize case/user specific data.
-
-
 .. _case_files_SIZE:
 
 ------------------------
 SIZE
 ------------------------
 
-SIZE file defines the problem size, i.e. spatial points at which the solution is to be evaluated within each element, number of elements per processor etc.
+SIZE file defines the problem size, i.e.\ the spatial points at which the solution is to be evaluated within each element, number of elements per processor etc.
 The SIZE file governs the memory allocation for most of the arrays
 in Nek5000, with the exception of those required by the C utilities.
 The *basic* parameters of interest in SIZE are:
 
-* **ldim** = 2 or 3.  This must be set to 2 for two-dimensional or axisymmetric simulations  (the latter only partially supported) or to 3 for three-dimensional simulations.
-* **lx1** controls the polynomial order of the solution, :math:`N = {\tt lx1-1}`.
-* **lxd** controls the polynomial order of the (over-)integration/dealiasing. Strictly speaking :math:`{\tt lxd=3 * lx1/2}` is required but often smaller values are good enough.
-* **lx2** = ``lx1`` or ``lx1-2`` and is an approximation order for pressure that determines the formulation for the Navier-Stokes  solver (i.e., the choice between the :math:`\mathbb{P}_N - \mathbb{P}_N` or :math:`\mathbb{P}_N - \mathbb{P}_{N-2}` spectral-element methods).
-* **lelg**, an upper bound on the total number of elements in your mesh.
-* **lpmax**, a maximum number of processors that can be used
-* **lpmin**, a minimum number of processors that can be used (see also  **Memory Requirements**).
-* **ldimt**, an upper bound on a number of auxilary fields to solve (temperature + other scalars, minimum is 1).
+* ``ldim`` = 2 or 3.  This must be set to 2 for two-dimensional or axisymmetric simulations  (the latter only partially supported) or to 3 for three-dimensional simulations.
+* ``lx1`` controls the polynomial order of the solution, :math:`N =` ``lx1`` :math:`-1`.
+* ``lxd`` controls the polynomial order of the (over-)integration/dealiasing. Strictly speaking :math:`{\tt lxd=3 * lx1/2}` is required but often smaller values are good enough.
+* ``lx2`` = ``lx1`` or ``lx1-2`` and is an approximation order for pressure that determines the formulation for the Navier-Stokes  solver (i.e., the choice between the :math:`\mathbb{P}_N - \mathbb{P}_N` or :math:`\mathbb{P}_N - \mathbb{P}_{N-2}` spectral-element methods).
+* ``lelg``, an upper bound on the total number of elements in your mesh.
+* ``lpmax``, a maximum number of processors that can be used (Deprecated as of the latest master branch)
+* ``lpmin``, a minimum number of processors that can be used
+* ``ldimt``, an upper bound on a number of auxilary fields to solve (temperature + other scalars, minimum is 1).
 
 The *optional*
 upper bounds on parameters in SIZE are (minimum being 1 unless otherwise noted):
 
-* **lhis**, a maximum history (i.e. monitoring) points.
-* **maxobj**, a maximum number of objects.
-* **lpert**, a maximum perturbations.
-* **toteq**, a maximum number of conserved scalars in CMT (minimum could be 0).
-* **nsessmax**, a maximum number of (ensemble-average) sessions.
-* **lxo**, a maximum number of points per element for field file output (:math:`{\tt lxo \geq lx1}`).
-* **lelx**, **lely**, **lelz**, a maximum number of element in each direction for global tensor product solver and/or dimentions.
-* **mxprev**, a maximum dimension of projection space (e.g. 20).
-* **lgmres**, a maximum dimension of Krylov space (e.g. 30).
-* **lorder**, a maximum order of temporal discretization (minimum is2 see also characteristic/OIFS method).
-* **lelt** determines the maximum number of elements *per processor* (should be not smaller than nelgt/lpmin, e.g. lelg/lpmin+1).
-* **lx1m**, a polynomial order for mesh solver that should be equal to lx1 in case of ALE and in case of stress-formulation (=1 otherwise).
-* **lbelt** determines the maximum number of elements per processor for MHD solver that should be equalt to lelt (=1 otherwise).
-* **lpelt** determines the maximum number of elements per processor for linear stability solver that should be equalt to lelt (=1 otherwise).
-* **lcvelt** determines the maximum number of elements per processor for CVODE solver that should be equalt to lelt (=1 otherwise).
-* **lfdm** equals to 1 for global tensor product solver (that uses fast diagonalization method) being 0 otherwise.
+* ``lhis``, a maximum history (i.e. monitoring) points.
+* ``maxobj``, a maximum number of objects.
+* ``lpert``, a maximum perturbations.
+* ``toteq``, a maximum number of conserved scalars in CMT (minimum could be 0).
+* ``nsessmax``, a maximum number of (ensemble-average) sessions.
+* ``lxo``, a maximum number of points per element for field file output (``lxo`` :math:`\geq` ``lx1``).
+* ``lelx``, ``lely``, ``lelz``, a maximum number of element in each direction for global tensor product solver and/or dimentions.
+* ``mxprev``, a maximum dimension of projection space (e.g. 20).
+* ``lgmres``, a maximum dimension of Krylov space (e.g. 30).
+* ``lorder``, a maximum order of temporal discretization (minimum is2 see also characteristic/OIFS method).
+* ``lelt`` determines the maximum number of elements *per processor* (should be not smaller than nelgt/lpmin, e.g. lelg/lpmin+1) (promoted to *basic* section as of the latest master branch).
+* ``lx1m``, a polynomial order for mesh solver that should be equal to lx1 in case of ALE and in case of stress-formulation (=1 otherwise).
+* ``lbelt`` determines the maximum number of elements per processor for MHD solver that should be equalt to lelt (=1 otherwise).
+* ``lpelt`` determines the maximum number of elements per processor for linear stability solver that should be equalt to lelt (=1 otherwise).
+* ``lcvelt`` determines the maximum number of elements per processor for CVODE solver that should be equalt to lelt (=1 otherwise).
+* ``lfdm`` equals to 1 for global tensor product solver (that uses fast diagonalization method) being 0 otherwise.
 
 Note that one also need to include the following line to SIZE file:
 

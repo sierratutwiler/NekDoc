@@ -15,17 +15,18 @@ Similarly, we start by generating a 2D mesh, and modify the case files for this 
 ..........................
 Pre-processing
 ..........................
+
 Users must always bear in mind, when setting up a test case in *Nek5000*, case files will need to be edited. 
 Some samples can be found in the ``Nek5000/examples`` directory included with the release version.
-Note that the ``examples`` directory is not included by default in the github repository (it can be obtained `here _http://github.com/Nek5000/NekExamples`).
+Note that the ``examples`` directory is linked in the github repository as a submodule and can alternatively be obtained `here <http://github.com/Nek5000/NekExamples>`_.
 Blank template files for the user file, ``zero.usr``, and the ``SIZE`` file, ``SIZE.template``, can be found in the ``Nek5000/core`` directory.
 As a first step, the user should create a case directory in the corresponding run directory:
 
-.. code-block:: none
+.. code-block:: console
 
-   cd $HOME/Nek5000/run 
-   mkdir conj_ht
-   cd conj_ht
+   $ cd $HOME/Nek5000/run 
+   $ mkdir conj_ht
+   $ cd conj_ht
 
 and copy the template files into this directory.
 Additionally, this tutorial requires the ``ray0.rea`` file from the Rayleigh-Bernard example found in ``Nek5000/examples/rayleigh``.
@@ -36,7 +37,7 @@ We begin by creating the mesh with appropriate bounday conditions and then setti
 Mesh generation
 ..........................
 
-This tutorial requires that you have the tools ``genbox``, ``genmap``, and *preNek* compiled. 
+This tutorial requires that you have the tools ``genbox``, ``genmap``, ``reatore2`` and *preNek* compiled. 
 Note that *preNek* requires the use of an xterminal.
 Make sure the tools directory (typically ``Nek5000/bin``) is in your environment PATH. 
 Before beginning, it is important to understand that there are two types of mesh topology: the "*v-mesh*" for the velocity and the "*t-mesh*" which can be used for the temperature and passive scalars.
@@ -65,7 +66,7 @@ Note that any line beginning with '#' is a comment and is ignored by ``genbox``
    #========================================================
    #
    Box
-   -20     -10         nelx,nely,nelz for Box)
+   -20     -10         nelx,nely,nelz for Box
    0.0    2.0   1.0    x0 x1 ratio
    0.0    1.0   1.0    y0 y1 ratio
    W  ,W  ,W  ,W  ,    V bc's  ! NB:  3 characters each !
@@ -105,13 +106,13 @@ Both domains can be generated simultaneously by ``genbox`` with the following in
    #========================================================
    #
    Box
-   -20    -5           nelx,nely,nelz for Box)
+   -20    -5           nelx,nely,nelz for Box
    0.0    2.0   1.0    x0 x1 ratio
    -0.2   0.0   1.0    y0 y1 ratio
       ,   ,   ,   ,    V bc's  ! NB:  3 characters each, in order: -x, +x, -y, +y, (-z, +z)!
    I  ,I  ,t  ,E  ,    T bc's  !      You must have 2 spaces!!
    Box
-   -20    -5           nelx,nely,nelz for Box)
+   -20    -5           nelx,nely,nelz for Box
    0.0    2.0   1.0    x0 x1 ratio
    1.0    1.2   1.0    y0 y1 ratio
       ,   ,   ,   ,    V bc's  ! NB:  3 characters each, in order: left, right, bottom, top
@@ -137,7 +138,7 @@ An example of running ``pretex`` is shown below, with the expected user input hi
 
 .. literalinclude:: conjht/pretex.txt
    :language: none
-   :emphasize-lines: 2,8,9,11,13
+   :emphasize-lines: 1,6,12,15,23
 
 Note that the ``.rea`` suffix is assumed when specifying files to *preNek*.
 If all goes well, this will produce the ``combined.rea`` file.
@@ -162,7 +163,7 @@ The produced mesh is shown in :numref:`fig:cht_mesh`.
     :figclass: align-center
     :alt: per_mesh
 
-    Modified box mesh graded
+    Combined box mesh
 
 ..........................
 usr file
@@ -172,9 +173,9 @@ The :ref:`user routines <case_files_usr>` file implements various subroutines to
 
 To get started we copy the template to our case directory and then we modify its subroutines accordingly.
 
-.. code-block:: none
+.. code-block:: console
 
-   cp $HOME/Nek5000/core/zero.usr cht2d.usr 
+   $ cp $HOME/Nek5000/core/zero.usr cht2d.usr 
 
 User Data                    
 _____________________________
@@ -194,7 +195,7 @@ Note that they will appear in most of the modified subroutines.
 Variable properties
 _____________________________
 
-In the :ref:`uservp subroutine <case_files_uservp>`, users can specifiy different variable properties for the fluid and solid subdomains independently. 
+In the :ref:`uservp subroutine <sec:uservp>`, users can specifiy different variable properties for the fluid and solid subdomains independently. 
 As an example, the thermal diffusivity of Copper is :math:`\alpha = 1.1 (10 ^ {-4})` [:math:`m^{2}/s`]. 
 The thermal diffusivity ratio of Copper and liquid metal alloy GaInSn (Pr = 0.033) is 10 and the thermal diffusivity ratio of Copper and air (Pr = 0.7) is 5.2 [Foroozani2021]_.
 The conductivity of the solid region is set by comparing the global element number, ``eg``, to the the total number of elements in the *v-mesh*, ``nelgv``.
@@ -206,17 +207,7 @@ The highlighted line indicates where this is done:
    :emphasize-lines: 15
 
 Note that the properties only vary between the fluid and the solid subdomains.
-Properties with the fluid and solid respectively remain constant as provided by the ``cpfld`` array.
-The ``cpfld`` array is filled with the values assigned in the par file according to:
-
-.. csv-table:: The field coefficient array
-   :header: "Parameter in the par file",
-   :widths: 15, 15
-
-   "viscosity","``cpfld(1,1)``"
-   "density","``cpfld(1,2)``"
-   "conductivity","``cpfld(2,1)``"
-   "rhoCp","``cpfld(2,2)``"
+Properties within the fluid and solid respectively remain constant as provided by :ref:`the field coefficient array <tab:cpfld>` (``cpfld``).
 
 Buoyancy model
 ______________
@@ -274,7 +265,6 @@ The control parameters for any case are given in the ``.par`` file.
 For this case, using any text editor, create a new file called ``cht2d.par`` and type in the following:
 
 .. literalinclude:: conjht/cht2d.par
-   :language: ini
 
 Note that if the file ``cht2d.rea`` exists within the case directory, *Nek5000* will preferentially read the case parameters from that file instead, which may result in errors or inconsistent results. 
 In this example, we have set the calculation to stop after a physical time of 50 (``endTime = 50.0``) and write the checkpoint file every 1 physical time units (``writeInterval = 1.0``).
@@ -291,9 +281,9 @@ The static memory layout of *Nek5000* requires the user to set some solver param
 Typically it's a good idea to start from the template.
 If you haven't already, copy the ``SIZE.template`` file from the core directory and rename it ``SIZE`` in the working directory:
 
-.. code-block:: none
+.. code-block:: console
 
-   cp $HOME/Nek5000/core/SIZE.template SIZE
+   $ cp $HOME/Nek5000/core/SIZE.template SIZE
 
 Then, adjust the following parameters in the BASIC section.
 The only one you will likely need to change is the number of global elements on the highlighted line.
@@ -320,9 +310,11 @@ As a final check, you should have the following files:
  * :download:`SIZE <conjht/SIZE>`
 
 If for some reason you encountered an insurmountable error and were unable to generate any of the required files, you may use the provided links to download them.
-After confirming that you have all five, you are now ready to compile::
+After confirming that you have all five, you are now ready to compile
 
-  makenek cht2d
+.. code-block:: console
+
+  $ makenek cht2d
 
 If all works properly, upon compilation the executable ``nek5000`` will be generated and you will see something like:
 
@@ -333,9 +325,9 @@ Note that compilation only relies on the user file and the SIZE file.
 Any changes to these two files will require recompiling your case!
 Now you are all set, just run
 
-.. code-block:: bash
+.. code-block:: console
 
-  nekbmpi cht2d 4
+  $ nekbmpi cht2d 4
 
 to launch an MPI jobs on your local machine using 4 ranks. The output will be redirected to ``logfile``.
 
@@ -351,9 +343,11 @@ Once execution is completed your directory should now contain multiple checkpoin
 
 The preferred mode for data visualization with *Nek5000* is to use Visit or Paraview. 
 This requires generating a metadata file with ``visnek``, found in ``/scripts``.
-It can be run with::
+It can be run with
 
-  visnek cht2d
+.. code-block:: console
+
+  $ visnek cht2d
 
 to obtain a file named ``cht2d.nek5000``.
 This file can be opened with either Visit or Paraview.
@@ -368,6 +362,6 @@ It will be similar to, but not necessarily identical to that shown in :numref:`f
     :figclass: align-center
     :alt: per_flow
 
-    Steady-State flow field visualized in Visit. Vectors represent velocity. Colors represent velocity magnitude.  
+    Steady-State flow field visualized in Visit. Vectors represent velocity. Colors represent temperature.
 
 

@@ -61,7 +61,7 @@ Installing, Compiling, and Running
 **Which platforms are supported by Nek5000?**
 
    All posix compliant operations system. 
-   To run on Windows, we recommend using the Windows Subsystem for Linux.
+   To run on Windows, we recommend using Ubuntu 20.04 on V2 of the Windows Subsystem for Linux.
 
 **Can Nek5000 run on GPUs?**
 
@@ -84,9 +84,11 @@ Installing, Compiling, and Running
 
    where ``lelt`` (the maximum number of local elements) is computed as lelg/lpmin.
    The memory allocated by MPI will depend heavily on the total number of ranks and the considered MPI implementation. 
-   For large rank counts (say > 100'000) it's easily 50-100MB.
+   For large rank counts (say :math:`E>100,000`) it's easily 50-100MB.
 
    Note, the output of GNU`s SIZE utility is inaccurate as it does not take into account the dynamic memory alloation of MPI, gslib, CVODE, etc. 
+
+.. _sec:faq_relocation:
 
 **Why does the compiler issue relocation errors?**
 
@@ -95,6 +97,7 @@ Installing, Compiling, and Running
    This happens when the resultant executable requires more than 2GB of static data.  
    The best way to avoid this is to increase the minimum number of MPI ranks, ``lpmin`` in ``SIZE``.  
    Alternatively, you can add ``-mcmodel=medium`` to the ``FFLAGS/CFLAGS`` variable in ``makenek``.
+   See :ref:`build_compflags` for more information.
 
 **Why does the code use static memory allocation?**
 
@@ -108,8 +111,15 @@ Installing, Compiling, and Running
 
 **How do I run the examples?**
 
-  The examples are included by default in the release tarball (see example directory). There is nothing special you need
-  to do as they are ready to run.  
+  The examples are included by default in the release tarball (see example directory). 
+  There is nothing special you need to do as they are ready to run. 
+  If you cloned the github repo, you will also need to clone the NekExamples repository separately. 
+
+**How do I run a case with more than 350,000 elements?**
+
+  To run a large case, you will need to compile with HYPRE support and use one of the AMG pressure preconditioners.
+  To compile with HYPRE see :ref:`build_pplist`.
+  To select an AMG preconditioner see :ref:`tab:pressureparams`.
 
 ---------------------------
 Pre-Processing and Numerics
@@ -126,6 +136,29 @@ Pre-Processing and Numerics
 **How do I import/convert a mesh to Nek5000?**
 
    We currently support conversion from the exodusII with the ``exo2nek`` converter. This enables the import from popular mesh generators like ANSYS ICEM and CUBIT.
+
+**I received a warning message about Lanczos failing to reach a residual target, what does this mean and what should I do about it?**
+
+  ``Warning: Lanczos reached a residual of 12.840714 (target: 0.000010) after 50 x 50 iterations in Level=7!``  
+
+  This warning is from parRSB (parallel recursive spectral bisection) which can be used to distribute the elements to MPI ranks for large problems in lieu of *genmap* (see :ref:`build_pplist`).
+  parRSB guarantees "load-balancing", meaning the numbers of elements for each MPI rank are as close as possible.
+  It also tries to minimize the communication between ranks by finding the minimal number of separators for the graph partition. 
+  For each cut, we find the Fiedler vector, the eigenvector of the smallest positive eigenvalue of the graph Laplacian.
+  The warning you simply means Lanczos has hard time to converge at one of the levels, which is commonly shown for complex geometries at scale. 
+  As long as it doesn't produce an error, generally the warning can be ignored.
+  However, it's recommended to also track the quality of the partition. You can find lines like these
+
+.. code-block:: none
+
+   nElements   max/min/bal: 10290 10289 1.00        << num. elem. per MPI rank.
+   nMessages   max/min/avg: 51 5 15.97              << indicating num. of MPI neighbors
+   msgSize     max/min/avg: 92191 1 12156.50        << size of each message
+   msgSizeSum  max/min/avg: 428087 104476 187446.11 << total message size per MPI rank.
+
+..
+
+  There are some knobs we can adjust for the partitioning, but this only matters when you are in the communication dominant region.
 
 **Why is it important to non-dimensionalize my case?**
 
@@ -253,6 +286,25 @@ Computational Speed
 Troubleshooting
 ---------------------------
 
+**Why does Nek hang or produce an error when reading the boundary faces from the re2 file?**
+
+.. code-block:: none
+
+  reading boundary faces                28720 for field 1
+    readp_re2_bc:pack/cr/unpack : 0.73E-02 0.18E-0.1 0.61E-02
+    readp_re_bc:byte_read_mpi   : 0.65E+01 
+  ERROR: Error reading .re2 boundary data  ierr=120
+..
+
+  By default, *Nek5000* expects to find a set of boundary conditions for every field in the simulation, i.e. velocity, temperature, and passive scalars.
+  Third party meshes converted with ``gmsh2nek`` or ``exo2nek`` typically only include a single set of boundary IDs.
+  This error can be resolved by adding the following to the ``.par`` file.
+
+.. code-block:: ini
+
+   [MESH]
+   numberOfBCFields = 1
+
 **My simulation diverges. What should I do?**
 
   There are many potential root causes but here are some things you can experiment with:
@@ -272,7 +324,6 @@ Post-Processing
 
    * For data analysis you use Nek5000's internal machinery through the usr file
    * Solution files can be read by VisIt and Paraview (for more information see :ref:`qstart_vis`)
-   * Various user contributions in `NekBazaar <https://github.com/Nek5000/NekBazaar/>`_ 
 
 **The local coordinate axes of my elements are not aligned with the global coordinate system, is this normal?**
 
